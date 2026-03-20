@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OS Chapter 1 — Quiz Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #040d1a;
+    --panel: #071628;
+    --border: #0a3d6b;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --green: #00ff88;
+    --red: #ff3366;
+    --yellow: #ffd700;
+    --text: #c8e6f5;
+    --muted: #4a7a9b;
+    --glow: 0 0 20px rgba(0,212,255,0.4);
+    --glow-green: 0 0 20px rgba(0,255,136,0.5);
+    --glow-red: 0 0 20px rgba(255,51,102,0.5);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Exo 2', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Animated starfield */
+  #stars {
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(1px 1px at 20% 30%, rgba(0,212,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 50% 70%, rgba(0,212,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 60%, rgba(0,255,136,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 35% 50%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 65% 20%, rgba(0,212,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 45%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 85%, rgba(0,212,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 15%, rgba(255,255,255,0.5) 0%, transparent 100%);
+  }
+
+  /* Grid overlay */
+  body::before {
+    content:'';
+    position:fixed; top:0; left:0; right:0; bottom:0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events:none; z-index:0;
+  }
+
+  #app { position: relative; z-index: 1; }
+
+  /* ── SCREENS ── */
+  .screen { display:none; min-height:100vh; }
+  .screen.active { display:flex; flex-direction:column; align-items:center; justify-content:center; }
+
+  /* ── START SCREEN ── */
+  #start-screen { padding: 2rem; text-align: center; }
+
+  .logo-wrap { margin-bottom: 2rem; }
+  .logo-sub {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem; letter-spacing: 6px;
+    color: var(--accent); text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    animation: flicker 3s infinite;
+  }
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2.2rem, 6vw, 4rem);
+    font-weight: 900;
+    color: var(--accent);
+    text-shadow: var(--glow), 0 0 60px rgba(0,212,255,0.3);
+    line-height: 1.1;
+  }
+  .logo span { color: var(--accent2); text-shadow: 0 0 20px rgba(255,107,53,0.6); }
+  .logo-chapter {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem; letter-spacing: 4px;
+    color: var(--muted); margin-top: 0.4rem;
+  }
+
+  .stats-row {
+    display:flex; gap:1.5rem; justify-content:center;
+    margin: 2rem 0; flex-wrap: wrap;
+  }
+  .stat-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem 1.8rem;
+    text-align: center;
+  }
+  .stat-box .val {
+    font-family:'Orbitron',monospace; font-size:1.8rem;
+    color: var(--accent); font-weight:700;
+    text-shadow: var(--glow);
+  }
+  .stat-box .lbl { font-size:0.7rem; letter-spacing:2px; color:var(--muted); margin-top:0.2rem; text-transform:uppercase; }
+
+  .start-btn {
+    font-family:'Orbitron',monospace; font-size:1rem;
+    font-weight:700; letter-spacing:3px;
+    color: var(--bg); background: var(--accent);
+    border: none; border-radius: 6px;
+    padding: 1rem 3rem; cursor: pointer;
+    text-transform: uppercase;
+    box-shadow: var(--glow), 0 4px 20px rgba(0,212,255,0.3);
+    transition: all 0.2s;
+    margin-top: 1rem;
+  }
+  .start-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: 0 0 40px rgba(0,212,255,0.7); }
+
+  .topic-list {
+    display:flex; flex-wrap:wrap; gap:0.5rem;
+    justify-content:center; max-width:700px;
+    margin: 1.5rem auto 0;
+  }
+  .topic-tag {
+    background: rgba(0,212,255,0.07);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 20px; padding: 0.3rem 0.8rem;
+    font-size:0.72rem; color:var(--accent);
+    letter-spacing:0.5px;
+  }
+
+  /* ── GAME SCREEN ── */
+  #game-screen { padding: 1rem; justify-content: flex-start; }
+
+  .hud {
+    width:100%; max-width:800px; margin:0 auto 1rem;
+    display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
+  }
+  .hud-score {
+    font-family:'Orbitron',monospace; font-size:1.3rem;
+    color:var(--accent); font-weight:700;
+    text-shadow: var(--glow);
+    flex: 1;
+  }
+  .hud-score span { font-size:0.7rem; color:var(--muted); display:block; letter-spacing:2px; }
+
+  .lives { display:flex; gap:4px; }
+  .life { font-size:1.1rem; transition: all 0.3s; }
+  .life.lost { opacity:0.2; filter: grayscale(1); transform:scale(0.8); }
+
+  .streak-badge {
+    font-family:'Orbitron',monospace; font-size:0.75rem;
+    background: rgba(255,215,0,0.15); border:1px solid rgba(255,215,0,0.4);
+    border-radius:20px; padding:0.25rem 0.75rem;
+    color: var(--yellow);
+    display:none;
+  }
+  .streak-badge.show { display:block; }
+
+  .progress-wrap {
+    width:100%; max-width:800px; margin:0 auto 1rem;
+    background: rgba(255,255,255,0.05); border-radius:4px; height:6px;
+    overflow:hidden;
+  }
+  .progress-bar {
+    height:100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius:4px; transition: width 0.4s ease;
+    box-shadow: 0 0 10px rgba(0,212,255,0.5);
+  }
+  .progress-label {
+    width:100%; max-width:800px; margin:-0.5rem auto 0.8rem;
+    text-align:right;
+    font-size:0.7rem; color:var(--muted); letter-spacing:1px;
+    font-family:'Orbitron',monospace;
+  }
+
+  /* Timer ring */
+  .timer-wrap {
+    display:flex; align-items:center; gap:0.5rem;
+  }
+  .timer-ring { position:relative; width:52px; height:52px; }
+  .timer-ring svg { transform:rotate(-90deg); }
+  .timer-ring circle { fill:none; stroke-width:4; stroke-linecap:round; }
+  .timer-ring .bg-circle { stroke: rgba(255,255,255,0.07); }
+  .timer-ring .fg-circle {
+    stroke: var(--accent);
+    stroke-dasharray: 138;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke 0.3s;
+  }
+  .timer-num {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    font-family:'Orbitron',monospace; font-weight:700; font-size:0.95rem;
+    color:var(--accent);
+  }
+
+  /* Question card */
+  .q-card {
+    width:100%; max-width:800px; margin:0 auto;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 2rem;
+    box-shadow: 0 0 40px rgba(0,212,255,0.05);
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { opacity:0; transform:translateY(16px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .q-meta {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:1rem;
+  }
+  .q-num {
+    font-family:'Orbitron',monospace; font-size:0.7rem;
+    letter-spacing:2px; color:var(--muted); text-transform:uppercase;
+  }
+  .q-topic {
+    font-size:0.68rem; letter-spacing:1.5px; color:var(--accent);
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius:20px; padding:0.2rem 0.7rem;
+    text-transform:uppercase;
+  }
+
+  .q-text {
+    font-size:1.1rem; font-weight:600; line-height:1.6;
+    color:#e8f4f8; margin-bottom:1.5rem;
+  }
+
+  .options { display:flex; flex-direction:column; gap:0.65rem; }
+
+  .option-btn {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius:8px; padding:0.9rem 1.2rem;
+    color:var(--text); font-family:'Exo 2',sans-serif; font-size:0.95rem;
+    cursor:pointer; text-align:left;
+    display:flex; align-items:center; gap:0.8rem;
+    transition: all 0.15s; position:relative; overflow:hidden;
+  }
+  .option-btn:hover:not(:disabled) {
+    background: rgba(0,212,255,0.08);
+    border-color: rgba(0,212,255,0.5);
+    transform: translateX(4px);
+  }
+  .option-btn .opt-letter {
+    font-family:'Orbitron',monospace; font-size:0.75rem; font-weight:700;
+    color:var(--muted); min-width:22px; text-align:center;
+  }
+  .option-btn.correct {
+    background: rgba(0,255,136,0.12) !important;
+    border-color: var(--green) !important;
+    color: var(--green) !important;
+    box-shadow: var(--glow-green);
+  }
+  .option-btn.correct .opt-letter { color: var(--green); }
+  .option-btn.wrong {
+    background: rgba(255,51,102,0.12) !important;
+    border-color: var(--red) !important;
+    color: var(--red) !important;
+    box-shadow: var(--glow-red);
+  }
+  .option-btn.wrong .opt-letter { color: var(--red); }
+  .option-btn:disabled { cursor:default; }
+
+  /* Feedback */
+  .feedback {
+    margin-top:1rem; padding:0.9rem 1.2rem;
+    border-radius:8px; font-size:0.9rem; line-height:1.5;
+    opacity:0; transition:opacity 0.3s;
+  }
+  .feedback.show { opacity:1; }
+  .feedback.correct-fb { background:rgba(0,255,136,0.07); border:1px solid rgba(0,255,136,0.3); color:var(--green); }
+  .feedback.wrong-fb  { background:rgba(255,51,102,0.07); border:1px solid rgba(255,51,102,0.3); color:#ff8099; }
+
+  .next-btn {
+    font-family:'Orbitron',monospace; font-size:0.8rem; letter-spacing:2px;
+    color:var(--bg); background:var(--accent);
+    border:none; border-radius:6px; padding:0.7rem 2rem;
+    cursor:pointer; margin-top:1rem; float:right;
+    box-shadow:var(--glow); transition:all 0.2s;
+    display:none;
+  }
+  .next-btn.show { display:block; }
+  .next-btn:hover { transform:translateY(-1px); box-shadow:0 0 30px rgba(0,212,255,0.7); }
+
+  /* Feedback flash overlay */
+  .flash { position:fixed; top:0; left:0; right:0; bottom:0; pointer-events:none; z-index:999; opacity:0; transition:opacity 0.2s; }
+  .flash.green { background:rgba(0,255,136,0.06); }
+  .flash.red   { background:rgba(255,51,102,0.08); }
+  .flash.show  { opacity:1; }
+
+  /* ── RESULT SCREEN ── */
+  #result-screen { padding:2rem; text-align:center; }
+
+  .result-grade {
+    font-family:'Orbitron',monospace;
+    font-size:6rem; font-weight:900;
+    margin-bottom:0.5rem;
+    animation: pulseGrade 2s infinite;
+  }
+  @keyframes pulseGrade {
+    0%,100% { text-shadow: 0 0 30px currentColor, 0 0 60px currentColor; }
+    50% { text-shadow: 0 0 60px currentColor, 0 0 120px currentColor; }
+  }
+
+  .result-msg {
+    font-family:'Orbitron',monospace; font-size:1.1rem; letter-spacing:3px;
+    color:var(--text); margin-bottom:2rem;
+    text-transform:uppercase;
+  }
+
+  .result-stats {
+    display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap;
+    margin-bottom:2rem;
+  }
+  .r-stat {
+    background:var(--panel); border:1px solid var(--border);
+    border-radius:10px; padding:1.2rem 2rem; text-align:center;
+    min-width:120px;
+  }
+  .r-stat .rv { font-family:'Orbitron',monospace; font-size:2rem; font-weight:700; color:var(--accent); text-shadow:var(--glow); }
+  .r-stat .rl { font-size:0.68rem; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-top:0.3rem; }
+
+  .result-breakdown {
+    width:100%; max-width:700px; margin:0 auto 2rem;
+    background:var(--panel); border:1px solid var(--border); border-radius:10px;
+    overflow:hidden; max-height:280px; overflow-y:auto;
+  }
+  .result-breakdown::-webkit-scrollbar { width:4px; }
+  .result-breakdown::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+  .rb-row {
+    display:flex; align-items:center; gap:1rem; padding:0.7rem 1.2rem;
+    border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.82rem;
+  }
+  .rb-icon { font-size:1rem; min-width:20px; }
+  .rb-q { flex:1; color:var(--text); }
+  .rb-a { color:var(--muted); font-size:0.75rem; }
+
+  .restart-btn {
+    font-family:'Orbitron',monospace; font-size:0.9rem; letter-spacing:3px;
+    color:var(--bg); background:var(--accent); border:none; border-radius:6px;
+    padding:1rem 2.5rem; cursor:pointer;
+    box-shadow:var(--glow); transition:all 0.2s;
+  }
+  .restart-btn:hover { transform:translateY(-2px); box-shadow:0 0 40px rgba(0,212,255,0.7); }
+
+  /* Combo popup */
+  .combo-popup {
+    position:fixed; top:20%; left:50%; transform:translate(-50%,-50%);
+    font-family:'Orbitron',monospace; font-size:2rem; font-weight:900;
+    color:var(--yellow); text-shadow:0 0 30px rgba(255,215,0,0.8);
+    pointer-events:none; z-index:9999;
+    opacity:0; transition:all 0.5s;
+  }
+  .combo-popup.pop {
+    animation: comboPop 0.8s forwards;
+  }
+  @keyframes comboPop {
+    0%   { opacity:0; transform:translate(-50%,-50%) scale(0.5); }
+    30%  { opacity:1; transform:translate(-50%,-50%) scale(1.2); }
+    70%  { opacity:1; transform:translate(-50%,-50%) scale(1); }
+    100% { opacity:0; transform:translate(-50%,-80%) scale(0.9); }
+  }
+
+  @keyframes flicker {
+    0%,95%,100% { opacity:1; }
+    96% { opacity:0.4; }
+    97% { opacity:1; }
+    98% { opacity:0.6; }
+  }
+
+  /* Responsive */
+  @media (max-width:600px) {
+    .q-card { padding:1.2rem; }
+    .q-text { font-size:0.95rem; }
+    .option-btn { font-size:0.85rem; padding:0.75rem 1rem; }
+    .logo { font-size:2rem; }
+  }
+</style>
+</head>
+<body>
+<div id="stars"></div>
+<div id="app">
+
+  <!-- START SCREEN -->
+  <div id="start-screen" class="screen active">
+    <div class="logo-wrap">
+      <div class="logo-sub">Operating Systems</div>
+      <div class="logo">OS<span>QUEST</span></div>
+      <div class="logo-chapter">Chapter 1 · Introduction</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="val">150</div><div class="lbl">Questions</div></div>
+      <div class="stat-box"><div class="val">20s</div><div class="lbl">Per Question</div></div>
+      <div class="stat-box"><div class="val">3</div><div class="lbl">Lives</div></div>
+    </div>
+    <div class="topic-list">
+      <span class="topic-tag">What is an OS</span>
+      <span class="topic-tag">System Structure</span>
+      <span class="topic-tag">Interrupts</span>
+      <span class="topic-tag">I/O & DMA</span>
+      <span class="topic-tag">Storage Hierarchy</span>
+      <span class="topic-tag">Caching</span>
+      <span class="topic-tag">Architectures</span>
+      <span class="topic-tag">Multiprogramming</span>
+      <span class="topic-tag">Dual-Mode</span>
+      <span class="topic-tag">Process Mgmt</span>
+      <span class="topic-tag">Memory Mgmt</span>
+      <span class="topic-tag">Protection & Security</span>
+      <span class="topic-tag">Kernel Data Structures</span>
+      <span class="topic-tag">Computing Environments</span>
+      <span class="topic-tag">Open-Source OS</span>
+    </div>
+    <button class="start-btn" onclick="startGame()">▶ &nbsp; START GAME</button>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game-screen" class="screen">
+    <div class="hud">
+      <div class="hud-score">
+        <span>Score</span>
+        <span id="score-display">0</span>
+      </div>
+      <div class="streak-badge" id="streak-badge">🔥 <span id="streak-num">0</span> Streak!</div>
+      <div class="timer-wrap">
+        <div class="timer-ring">
+          <svg width="52" height="52" viewBox="0 0 52 52">
+            <circle class="bg-circle" cx="26" cy="26" r="22"/>
+            <circle class="fg-circle" id="timer-circle" cx="26" cy="26" r="22"/>
+          </svg>
+          <div class="timer-num" id="timer-num">20</div>
+        </div>
+      </div>
+      <div class="lives" id="lives-display">
+        <span class="life">❤️</span><span class="life">❤️</span><span class="life">❤️</span>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+    </div>
+    <div class="progress-label" id="progress-label">0 / 150</div>
+    <div class="q-card" id="q-card">
+      <div class="q-meta">
+        <span class="q-num" id="q-num">Q 1</span>
+        <span class="q-topic" id="q-topic">Topic</span>
+      </div>
+      <div class="q-text" id="q-text">Question text here</div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">NEXT →</button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="result-screen" class="screen">
+    <div class="result-grade" id="result-grade">A+</div>
+    <div class="result-msg" id="result-msg">Outstanding!</div>
+    <div class="result-stats">
+      <div class="r-stat"><div class="rv" id="r-score">0</div><div class="rl">Score</div></div>
+      <div class="r-stat"><div class="rv" id="r-correct">0</div><div class="rl">Correct</div></div>
+      <div class="r-stat"><div class="rv" id="r-pct">0%</div><div class="rl">Accuracy</div></div>
+      <div class="r-stat"><div class="rv" id="r-streak">0</div><div class="rl">Best Streak</div></div>
+    </div>
+    <div class="result-breakdown" id="result-breakdown"></div>
+    <button class="restart-btn" onclick="restartGame()">↺ &nbsp; PLAY AGAIN</button>
+  </div>
+
+</div>
+
+<div class="flash" id="flash"></div>
+<div class="combo-popup" id="combo-popup"></div>
+
+<script>
+const QUESTIONS = [
+  // ── WHAT IS AN OS ──────────────────────────────────────────────────────
+  {t:"What is an OS", q:"What is the primary role of an operating system?",
+   o:["Provide internet access","Act as an intermediary between the user and computer hardware","Compile source code into machine code","Store user files permanently"],
+   a:1, e:"An OS acts as an intermediary between the user and the hardware, managing resources and enabling program execution."},
+  {t:"What is an OS", q:"Which of the following best describes an OS as a 'resource allocator'?",
+   o:["It creates new hardware resources","It manages all resources and decides between conflicting requests","It translates high-level code to binary","It controls only memory allocation"],
+   a:1, e:"As a resource allocator, the OS manages all hardware resources and arbitrates between conflicting requests for efficient, fair use."},
+  {t:"What is an OS", q:"What is the OS goal related to user programs?",
+   o:["Prevent users from running unauthorized programs","Execute user programs and make solving user problems easier","Maximize hardware usage at all times","Minimize user interaction with hardware"],
+   a:1, e:"One key OS goal is to execute user programs and make solving user problems easier."},
+  {t:"What is an OS", q:"Which type of user is LEAST concerned about resource utilization?",
+   o:["Mainframe users","Minicomputer users","Personal workstation users","Embedded system designers"],
+   a:2, e:"Users of personal workstations want convenience, ease of use, and good performance — they typically don't care about resource utilization."},
+  {t:"What is an OS", q:"What is the kernel?",
+   o:["Every program that ships with the OS","The one program running at all times on the computer","A special application for system security","The bootloader stored in ROM"],
+   a:1, e:"The kernel is the one program running at all times on the computer. Everything else is a system or application program."},
+  {t:"What is an OS", q:"A handheld computer's OS is typically optimized for which two things?",
+   o:["Speed and security","Usability and battery life","Graphics and networking","Memory and storage"],
+   a:1, e:"Handheld computers are resource-poor and optimized for usability and battery life."},
+  {t:"What is an OS", q:"Which category does an application program fall under?",
+   o:["Kernel component","Part of the hardware abstraction layer","Neither the kernel nor a system program","A system program"],
+   a:2, e:"Application programs are neither the kernel nor system programs — they are separate programs that use OS services."},
+  {t:"What is an OS", q:"What is a 'system program'?",
+   o:["Any program a user installs","A program that ships with the OS (but is not the kernel)","The kernel itself","A driver for hardware devices only"],
+   a:1, e:"System programs ship with the OS but are not the kernel itself. They support OS functionality."},
+  {t:"What is an OS", q:"Which best describes an OS as a 'control program'?",
+   o:["It controls network traffic","It controls execution of programs to prevent errors and improper computer use","It controls file permissions only","It controls hardware manufacturing"],
+   a:1, e:"As a control program, the OS controls the execution of user programs to prevent errors and improper use."},
+  {t:"What is an OS", q:"What is the most accurate short definition of a kernel?",
+   o:["All software loaded at startup","The one program always running on the computer","The BIOS firmware","The OS graphical interface"],
+   a:1, e:"The kernel is defined as 'the one program running at all times on the computer.'"},
+
+  // ── COMPUTER SYSTEM STRUCTURE ──────────────────────────────────────────
+  {t:"System Structure", q:"How many main components does a computer system have?",
+   o:["Two","Three","Four","Five"],
+   a:2, e:"A computer system is divided into four components: hardware, OS, application programs, and users."},
+  {t:"System Structure", q:"Which component provides the basic computing resources?",
+   o:["Operating system","Application programs","Hardware","Users"],
+   a:2, e:"Hardware — which includes the CPU, memory, and I/O devices — provides the basic computing resources."},
+  {t:"System Structure", q:"What does the operating system do with hardware?",
+   o:["It replaces hardware functionality","Controls and coordinates use of hardware among applications and users","Manufactures new hardware components","Directly executes all user programs"],
+   a:1, e:"The OS controls and coordinates the use of hardware among various applications and users."},
+  {t:"System Structure", q:"Which of the following is an example of an application program?",
+   o:["Device driver","Kernel module","Web browser","Bootstrap program"],
+   a:2, e:"Application programs like web browsers, compilers, and databases define how system resources are used to solve user problems."},
+  {t:"System Structure", q:"Who or what are classified as 'users' in a computer system?",
+   o:["Only human beings","People, machines, and other computers","Application software only","The kernel and its modules"],
+   a:1, e:"Users include people, machines, and other computers — anything that interacts with the computer system."},
+  {t:"System Structure", q:"A shared computer like a mainframe must primarily focus on:",
+   o:["Maximizing a single user's experience","Keeping all users happy","Minimizing power consumption","Providing the fastest single-task performance"],
+   a:1, e:"A shared computer such as a mainframe or minicomputer must keep all users happy, balancing resources fairly."},
+  {t:"System Structure", q:"Embedded computers in automobiles typically have:",
+   o:["Full graphical user interfaces","No or little user interface","Advanced networking features","Large storage capacities"],
+   a:1, e:"Embedded computers in devices and automobiles often have little or no user interface."},
+  {t:"System Structure", q:"What layer sits directly between the OS and application programs?",
+   o:["There is no layer — they communicate directly","Hardware abstraction","System calls interface","Device drivers"],
+   a:2, e:"System calls provide the interface between application programs and the OS."},
+  {t:"System Structure", q:"Which computer type is described as 'resource poor'?",
+   o:["Mainframe","Server","Handheld/mobile device","Dedicated workstation"],
+   a:2, e:"Handheld computers are described as resource-poor, optimized for usability and battery life."},
+  {t:"System Structure", q:"Which of the following is NOT one of the four computer system components?",
+   o:["Hardware","Network","Operating system","Users"],
+   a:1, e:"The four components are hardware, OS, application programs, and users. Network is not one of the four fundamental components."},
+
+  // ── OS DEFINITION / KERNEL ─────────────────────────────────────────────
+  {t:"OS Definition", q:"There is a universally accepted definition of an operating system — True or False?",
+   o:["True","False","Only for Unix-based systems","Only for mobile OSes"],
+   a:1, e:"There is no universally accepted definition of an operating system."},
+  {t:"OS Definition", q:"A common approximation of what an OS is: 'Everything a vendor ships when you order an operating system.' What is the problem with this?",
+   o:["It is too technical","It varies wildly between vendors","It excludes the kernel","It only applies to Linux"],
+   a:1, e:"'Everything a vendor ships' is a good approximation but it varies wildly — some vendors ship much more than others."},
+  {t:"OS Definition", q:"What are the two categories of software besides the kernel?",
+   o:["Drivers and firmware","System programs and application programs","Compilers and interpreters","Libraries and utilities"],
+   a:1, e:"Besides the kernel, software is either a system program (ships with the OS) or an application program."},
+  {t:"OS Definition", q:"What is the role of the OS in deciding between conflicting resource requests?",
+   o:["Always deny the first request","Grant requests randomly","Decide for efficient and fair resource use","Always prioritize system processes"],
+   a:2, e:"The OS as resource allocator decides between conflicting requests for efficient and fair resource use."},
+  {t:"OS Definition", q:"Which term refers to software that ships with the OS but is not the kernel?",
+   o:["Application program","System program","Firmware","Device driver"],
+   a:1, e:"A system program ships with the OS but is not the kernel."},
+
+  // ── BOOTSTRAP ─────────────────────────────────────────────────────────
+  {t:"Bootstrap & Startup", q:"What is a bootstrap program?",
+   o:["A program that compresses files at startup","A program loaded at power-up or reboot to initialize the system","The kernel itself","A device driver loaded dynamically"],
+   a:1, e:"The bootstrap program is loaded at power-up or reboot; it initializes all system aspects and loads the OS kernel."},
+  {t:"Bootstrap & Startup", q:"Where is the bootstrap program typically stored?",
+   o:["Hard disk boot sector","RAM","ROM or EPROM (firmware)","Virtual memory"],
+   a:2, e:"The bootstrap program is typically stored in ROM or EPROM, generally known as firmware."},
+  {t:"Bootstrap & Startup", q:"What does the bootstrap program do FIRST after being loaded?",
+   o:["Starts all application programs","Initializes all aspects of the system","Reads user preferences","Connects to the internet"],
+   a:1, e:"The bootstrap program first initializes all aspects of the system, then loads the OS kernel."},
+  {t:"Bootstrap & Startup", q:"What does the bootstrap program do AFTER initializing the system?",
+   o:["Runs user applications","Loads the OS kernel and starts execution","Formats the hard drive","Checks for network connectivity"],
+   a:1, e:"After initialization, the bootstrap program loads the OS kernel and starts its execution."},
+  {t:"Bootstrap & Startup", q:"Another name for bootstrap firmware stored in ROM is:",
+   o:["BIOS or firmware","Virtual memory","Cache","Swap space"],
+   a:0, e:"Firmware is the common term for the bootstrap program stored in ROM or EPROM."},
+  {t:"Bootstrap & Startup", q:"When exactly is the bootstrap program triggered?",
+   o:["Only when an error occurs","When a user logs in","At power-up or reboot","When a new application is installed"],
+   a:2, e:"The bootstrap program is loaded at power-up or reboot — it is the very first code to run."},
+
+  // ── COMPUTER SYSTEM ORGANIZATION ──────────────────────────────────────
+  {t:"System Organization", q:"How do CPUs and device controllers connect to shared memory?",
+   o:["Via point-to-point cables","Through a common bus","Through the OS kernel directly","Using wireless signals"],
+   a:1, e:"One or more CPUs and device controllers connect through a common bus providing access to shared memory."},
+  {t:"System Organization", q:"What happens between CPUs and devices in a computer system?",
+   o:["They take strict turns executing","They execute concurrently, competing for memory cycles","One CPU controls all I/O devices","Devices pause while CPUs run"],
+   a:1, e:"CPUs and devices execute concurrently, competing for memory cycles."},
+  {t:"System Organization", q:"What does each device controller have?",
+   o:["Its own dedicated CPU","A local buffer","Direct access to main memory","A separate power supply"],
+   a:1, e:"Each device controller has a local buffer used to temporarily store data during I/O operations."},
+  {t:"System Organization", q:"The CPU moves data between:",
+   o:["Cache and secondary storage only","Main memory and local buffers of device controllers","Registers and the hard disk","ROM and RAM"],
+   a:1, e:"The CPU moves data from/to main memory to/from local buffers of device controllers."},
+  {t:"System Organization", q:"In a computer system, each device controller is in charge of:",
+   o:["All devices in the system","A particular device type","Only interrupt handling","The memory bus"],
+   a:1, e:"Each device controller is in charge of a particular device type."},
+  {t:"System Organization", q:"How does a device controller inform the CPU that it has finished?",
+   o:["It writes to a special register","It causes an interrupt","It sends a network packet","It directly wakes the CPU from sleep"],
+   a:1, e:"A device controller informs the CPU that it has finished its operation by causing an interrupt."},
+
+  // ── INTERRUPTS ────────────────────────────────────────────────────────
+  {t:"Interrupts", q:"What is an interrupt vector?",
+   o:["A measure of interrupt frequency","A data structure containing addresses of all interrupt service routines","The direction of data flow during I/O","A timer register"],
+   a:1, e:"The interrupt vector contains the addresses of all the service routines."},
+  {t:"Interrupts", q:"When an interrupt occurs, what must the OS preserve?",
+   o:["The display buffer","The state of the CPU (registers and program counter)","The contents of all files","User interface state"],
+   a:1, e:"The OS preserves the state of the CPU by storing registers and the program counter when an interrupt occurs."},
+  {t:"Interrupts", q:"What is a trap or exception?",
+   o:["A hardware-generated interrupt only","A software-generated interrupt caused by an error or user request","A timer-based interrupt","A DMA completion signal"],
+   a:1, e:"A trap or exception is a software-generated interrupt caused either by an error or a user request (like a system call)."},
+  {t:"Interrupts", q:"Which phrase best describes an operating system's architecture?",
+   o:["Event-loop driven","Interrupt-driven","Polling-driven","Message-passing only"],
+   a:1, e:"An operating system is interrupt-driven — hardware and software interrupts are the primary mechanism of control."},
+  {t:"Interrupts", q:"What is the difference between polling and a vectored interrupt system?",
+   o:["Polling uses software; vectored uses hardware timers","Polling checks each device for interrupt status; vectored uses the interrupt vector to jump directly to the handler","They are identical in implementation","Polling is faster in all cases"],
+   a:1, e:"Polling checks each device to determine if an interrupt occurred; a vectored interrupt system uses the interrupt vector to identify and jump directly to the correct handler."},
+  {t:"Interrupts", q:"What information does the interrupt architecture save?",
+   o:["Only the program counter","The address of the interrupted instruction","All register values only","The full contents of RAM"],
+   a:1, e:"The interrupt architecture must save the address of the interrupted instruction."},
+  {t:"Interrupts", q:"An OS handles multiple interrupt types using:",
+   o:["A single large handler for all interrupts","Separate segments of code for each interrupt type","A round-robin scheduler","Random assignment to CPU cores"],
+   a:1, e:"Separate segments of code determine what action should be taken for each type of interrupt."},
+  {t:"Interrupts", q:"Which of the following is a software-generated interrupt?",
+   o:["A keyboard key press","A division by zero error","A network packet arrival","A disk read completion"],
+   a:1, e:"A division by zero error is a software-generated interrupt (a trap or exception)."},
+  {t:"Interrupts", q:"What happens immediately after an interrupt is handled?",
+   o:["The system reboots","Execution resumes from where it was interrupted (after state is restored)","A new process is always started","The program that caused it is terminated"],
+   a:1, e:"After an interrupt is handled and state is restored, execution resumes from the interrupted instruction."},
+  {t:"Interrupts", q:"Which transfers control to the interrupt service routine?",
+   o:["The process scheduler","The interrupt vector","The device driver API","The DMA controller"],
+   a:1, e:"Interrupt transfers control to the interrupt service routine generally through the interrupt vector."},
+
+  // ── I/O STRUCTURE ─────────────────────────────────────────────────────
+  {t:"I/O Structure", q:"In synchronous I/O, control returns to the user program:",
+   o:["Before I/O begins","Immediately after issuing the I/O request","Only upon I/O completion","After a fixed time regardless"],
+   a:2, e:"In synchronous I/O, control returns to the user program only upon I/O completion."},
+  {t:"I/O Structure", q:"In asynchronous I/O, what happens after I/O is started?",
+   o:["The CPU blocks until I/O finishes","Control returns to the user program without waiting for I/O completion","The system halts","A new process is created"],
+   a:1, e:"In asynchronous I/O, control returns to the user program without waiting for I/O completion."},
+  {t:"I/O Structure", q:"What is a system call in the context of I/O?",
+   o:["A hardware interrupt","A request to the OS to allow the user to wait for I/O completion","A special CPU instruction for disk access","An interrupt service routine"],
+   a:1, e:"A system call is a request to the OS to allow the user to wait for I/O completion."},
+  {t:"I/O Structure", q:"What does the device-status table contain?",
+   o:["A log of all OS errors","An entry for each I/O device indicating type, address, and state","A list of all running processes","CPU scheduling information"],
+   a:1, e:"The device-status table contains an entry for each I/O device indicating its type, address, and state."},
+  {t:"I/O Structure", q:"The 'wait instruction' in synchronous I/O:",
+   o:["Sends the CPU to sleep permanently","Idles the CPU until the next interrupt","Suspends all processes","Pauses only the requesting process"],
+   a:1, e:"The wait instruction idles the CPU until the next interrupt arrives, effectively waiting for I/O."},
+  {t:"I/O Structure", q:"DMA stands for:",
+   o:["Dynamic Memory Allocation","Direct Memory Access","Disk Management Architecture","Device Module Array"],
+   a:1, e:"DMA stands for Direct Memory Access."},
+  {t:"I/O Structure", q:"DMA is used for which type of I/O devices?",
+   o:["Low-speed devices like keyboards","High-speed I/O devices able to transmit at close to memory speeds","Only network cards","Only optical drives"],
+   a:1, e:"DMA is used for high-speed I/O devices that can transmit information at close to memory speeds."},
+  {t:"I/O Structure", q:"How does DMA transfer data?",
+   o:["The CPU copies each byte individually","The device controller transfers blocks of data directly to main memory without CPU intervention","The OS kernel copies data byte by byte","Data flows through the interrupt vector"],
+   a:1, e:"The device controller transfers blocks of data from buffer storage directly to main memory without CPU intervention."},
+  {t:"I/O Structure", q:"How many interrupts does DMA generate per block transfer?",
+   o:["One interrupt per byte","One interrupt per word","One interrupt per block","No interrupts — it's fully autonomous"],
+   a:2, e:"DMA generates only one interrupt per block, rather than one interrupt per byte, dramatically reducing CPU overhead."},
+  {t:"I/O Structure", q:"What is the main CPU advantage of DMA?",
+   o:["It increases CPU clock speed","It frees the CPU to do other work during bulk data transfers","It eliminates the need for device controllers","It speeds up CPU cache operations"],
+   a:1, e:"Since DMA handles bulk transfers independently, the CPU is free to do other work during the transfer."},
+
+  // ── STORAGE DEFINITIONS ───────────────────────────────────────────────
+  {t:"Storage Basics", q:"What is the basic unit of computer storage?",
+   o:["Byte","Nibble","Bit","Word"],
+   a:2, e:"The basic unit of computer storage is the bit, which can contain 0 or 1."},
+  {t:"Storage Basics", q:"How many bits make up a byte?",
+   o:["4","8","16","32"],
+   a:1, e:"A byte is 8 bits."},
+  {t:"Storage Basics", q:"What is a kilobyte (KB)?",
+   o:["1,000 bytes","1,024 bytes","1,048 bytes","512 bytes"],
+   a:1, e:"A kilobyte is 1,024 bytes (2^10 bytes)."},
+  {t:"Storage Basics", q:"A gigabyte is defined as:",
+   o:["1,024 bytes","1,024² bytes","1,024³ bytes","1,024⁴ bytes"],
+   a:2, e:"A gigabyte (GB) is 1,024³ bytes."},
+  {t:"Storage Basics", q:"Networking measurements are typically given in:",
+   o:["Bytes","Kilobytes","Bits","Words"],
+   a:2, e:"Networking measurements are an exception — they are given in bits, because networks move data a bit at a time."},
+  {t:"Storage Basics", q:"A 'word' in computer architecture refers to:",
+   o:["Always exactly 4 bytes","A given architecture's native unit of data","8 bits on all systems","The size of an integer"],
+   a:1, e:"A word is a given computer architecture's native unit of data, typically made up of one or more bytes."},
+  {t:"Storage Basics", q:"A petabyte (PB) equals:",
+   o:["1,024³ bytes","1,024⁴ bytes","1,024⁵ bytes","1,024⁶ bytes"],
+   a:2, e:"A petabyte is 1,024⁵ bytes."},
+  {t:"Storage Basics", q:"Computer manufacturers often round 1 gigabyte to:",
+   o:["1,024 bytes","1 billion bytes","1,024² bytes","1 trillion bytes"],
+   a:1, e:"Computer manufacturers often round off and call 1 GB = 1 billion bytes."},
+
+  // ── STORAGE STRUCTURE ─────────────────────────────────────────────────
+  {t:"Storage Structure", q:"Which storage medium can the CPU access directly?",
+   o:["Hard disk","Optical drive","Main memory (RAM)","Magnetic tape"],
+   a:2, e:"Main memory is the only large storage media that the CPU can access directly."},
+  {t:"Storage Structure", q:"Main memory is described as:",
+   o:["Non-volatile and slow","Volatile and randomly accessible","Non-volatile and fast","Sequential access only"],
+   a:1, e:"Main memory is random access and typically volatile — it loses contents when power is removed."},
+  {t:"Storage Structure", q:"Secondary storage is an extension of main memory that provides:",
+   o:["Faster temporary storage","Large nonvolatile storage capacity","Direct CPU access","Real-time caching"],
+   a:1, e:"Secondary storage provides large nonvolatile storage capacity, extending main memory."},
+  {t:"Storage Structure", q:"A hard disk surface is logically divided into:",
+   o:["Pages and frames","Tracks subdivided into sectors","Blocks and clusters only","Cylinders and bytes"],
+   a:1, e:"The disk surface is logically divided into tracks, which are further subdivided into sectors."},
+  {t:"Storage Structure", q:"What determines the logical interaction between the disk and the computer?",
+   o:["The CPU scheduler","The disk controller","The file system alone","The bootstrap loader"],
+   a:1, e:"The disk controller determines the logical interaction between the device and the computer."},
+  {t:"Storage Structure", q:"How do solid-state disks (SSDs) compare to hard disks?",
+   o:["Slower but cheaper","Faster than hard disks and nonvolatile","Same speed but more reliable","Volatile and faster"],
+   a:1, e:"SSDs are faster than hard disks and nonvolatile — they have no moving parts."},
+  {t:"Storage Structure", q:"Magnetic recording material is found on:",
+   o:["Solid-state drives","Hard disk platters","DRAM modules","CPU cache"],
+   a:1, e:"Hard disks consist of rigid metal or glass platters covered with magnetic recording material."},
+  {t:"Storage Structure", q:"What type of access does main memory support?",
+   o:["Sequential only","Random access","Block access only","Stream access"],
+   a:1, e:"Main memory supports random access — any location can be accessed in any order."},
+
+  // ── STORAGE HIERARCHY ─────────────────────────────────────────────────
+  {t:"Storage Hierarchy", q:"Storage systems are organized in a hierarchy based on:",
+   o:["Manufacturer and model","Speed, cost, and volatility","Size and color","Purchase date"],
+   a:1, e:"Storage systems are organized in a hierarchy based on speed, cost, and volatility."},
+  {t:"Storage Hierarchy", q:"What is tertiary storage?",
+   o:["CPU registers","Main memory","Secondary storage like SSDs","Optical storage and magnetic tape"],
+   a:3, e:"Tertiary storage includes optical storage and magnetic tape — used for long-term archival storage."},
+  {t:"Storage Hierarchy", q:"From fastest to slowest, which order is correct?",
+   o:["RAM → Cache → Hard Disk → Register","Register → Cache → RAM → Hard Disk","Hard Disk → RAM → Cache → Register","Cache → Register → RAM → Hard Disk"],
+   a:1, e:"The correct speed order is: Registers (fastest) → Cache → RAM → Hard Disk (slowest)."},
+  {t:"Storage Hierarchy", q:"What provides a uniform interface between device controllers and the kernel?",
+   o:["Interrupt vector","Device driver","Bootstrap loader","File system"],
+   a:1, e:"A device driver for each device controller provides a uniform interface between the controller and the kernel."},
+  {t:"Storage Hierarchy", q:"WORM stands for:",
+   o:["Write Once, Read Many-times","Write Or Read Memory","Wireless Optical Read Module","Write-Only Random Memory"],
+   a:0, e:"WORM stands for Write-Once, Read-Many-times — used for archival optical storage."},
+  {t:"Storage Hierarchy", q:"Tertiary storage management is handled by:",
+   o:["Only the OS","Only applications","OS or applications","Neither, it's automatic"],
+   a:2, e:"Tertiary storage must be managed, either by the OS or by applications, depending on the system."},
+  {t:"Storage Hierarchy", q:"What does 'volatile' mean in terms of storage?",
+   o:["Storage that changes frequently","Storage that loses its contents when power is removed","Storage that is read-only","Storage accessed via network"],
+   a:1, e:"Volatile storage loses its contents when power is removed (e.g., RAM)."},
+  {t:"Storage Hierarchy", q:"Which is generally true as you move UP the storage hierarchy?",
+   o:["Storage gets larger and slower","Storage gets faster and more expensive","Storage gets cheaper and larger","Storage gets more portable"],
+   a:1, e:"Moving up the hierarchy (toward registers), storage gets faster, more expensive per bit, and smaller in capacity."},
+
+  // ── CACHING ───────────────────────────────────────────────────────────
+  {t:"Caching", q:"What is caching?",
+   o:["Permanently storing data on disk","Copying information into faster storage temporarily","Encrypting data for security","Compressing files to save space"],
+   a:1, e:"Caching is the principle of copying information into faster storage temporarily to improve access speed."},
+  {t:"Caching", q:"When looking for data, the system checks the cache first. If the data is there:",
+   o:["It copies it to disk then uses it","It is used directly from cache (fast)","It verifies with main memory first","It discards the cache copy"],
+   a:1, e:"If data is found in cache, it is used directly from the cache — this is fast."},
+  {t:"Caching", q:"If data is NOT found in cache, what happens?",
+   o:["An error is returned","Data is deleted permanently","Data is copied to cache and used there","The system reboots"],
+   a:2, e:"If data is not in cache, it is fetched from the slower storage, copied to cache, and then used."},
+  {t:"Caching", q:"How does a cache's size compare to the storage it caches?",
+   o:["Cache is always larger","Cache is smaller than the storage being cached","They are the same size","It depends only on the OS"],
+   a:1, e:"Cache is always smaller than the storage being cached — that's why cache management is a key design challenge."},
+  {t:"Caching", q:"What are the two key cache management design issues?",
+   o:["Cache location and bus speed","Cache size and replacement policy","Cache encryption and compression","Cache power and temperature"],
+   a:1, e:"Cache management involves two key design issues: cache size and replacement policy (which item to evict when the cache is full)."},
+  {t:"Caching", q:"At which levels does caching occur?",
+   o:["Only in hardware","Only in the OS","Only in software","At many levels: hardware, OS, and software"],
+   a:3, e:"Caching is an important principle performed at many levels in a computer — hardware, OS, and software."},
+  {t:"Caching", q:"Main memory can be viewed as a cache for:",
+   o:["CPU registers","Secondary storage","Tertiary storage","The network"],
+   a:1, e:"Main memory can be viewed as a cache for secondary storage."},
+  {t:"Caching", q:"In a multiprocessor environment, cache coherency means:",
+   o:["All caches are cleared at startup","All CPUs have the most recent value in their cache","Caches are sorted alphabetically","Cache sizes are equal across CPUs"],
+   a:1, e:"Cache coherency in a multiprocessor environment ensures all CPUs have the most recent value in their cache, provided in hardware."},
+
+  // ── COMPUTER SYSTEM ARCHITECTURE ──────────────────────────────────────
+  {t:"Architecture", q:"What is the most common processor configuration in traditional systems?",
+   o:["Multiple general-purpose processors","A single general-purpose processor","No processor — uses FPGAs","A dedicated processor per task"],
+   a:1, e:"Most traditional systems use a single general-purpose processor."},
+  {t:"Architecture", q:"Multiprocessor systems are also known as:",
+   o:["Distributed systems","Parallel systems or tightly-coupled systems","Peer-to-peer systems","Virtual systems"],
+   a:1, e:"Multiprocessor systems are also known as parallel systems or tightly-coupled systems."},
+  {t:"Architecture", q:"Which is NOT an advantage of multiprocessor systems?",
+   o:["Increased throughput","Economy of scale","Increased reliability","Reduced need for an OS"],
+   a:3, e:"Advantages of multiprocessors include increased throughput, economy of scale, and increased reliability — not reduced OS need."},
+  {t:"Architecture", q:"In Asymmetric Multiprocessing:",
+   o:["All processors perform all tasks","Each processor is assigned a specific task","Processors take turns with a scheduler","Only one processor runs at a time"],
+   a:1, e:"In Asymmetric Multiprocessing, each processor is assigned a specific task."},
+  {t:"Architecture", q:"In Symmetric Multiprocessing (SMP):",
+   o:["One master processor controls all others","Each processor performs all tasks","Processors are physically separate","Only two processors are used"],
+   a:1, e:"In SMP, each processor performs all tasks — they are peers and all run the same OS."},
+  {t:"Architecture", q:"Graceful degradation refers to:",
+   o:["Slowly shutting down when power is low","The ability to continue operating when a processor fails","Reducing CPU speed to save energy","Limiting user access during maintenance"],
+   a:1, e:"Graceful degradation (fault tolerance) is the ability to continue operating even when a component fails."},
+  {t:"Architecture", q:"A multi-core design places multiple processing cores:",
+   o:["On separate chips in the same chassis","On a single chip","In separate server racks","In different physical computers"],
+   a:1, e:"A multi-core design places multiple processing cores on a single chip."},
+  {t:"Architecture", q:"Clustered systems differ from multiprocessor systems in that they:",
+   o:["Use a single OS for everything","Involve multiple full systems working together","Have no shared storage","Cannot achieve high availability"],
+   a:1, e:"Clustered systems consist of multiple systems working together, whereas multiprocessor systems have multiple CPUs in a single system."},
+  {t:"Architecture", q:"Clustered systems usually share storage via:",
+   o:["A local USB hub","A Storage-Area Network (SAN)","Bluetooth","The internet only"],
+   a:1, e:"Clustered systems usually share storage via a storage-area network (SAN)."},
+  {t:"Architecture", q:"In asymmetric clustering, one machine is in what mode?",
+   o:["Active processing mode","Hot-standby mode","Sleep mode","Debug mode"],
+   a:1, e:"In asymmetric clustering, one machine is in hot-standby mode, ready to take over if the active node fails."},
+  {t:"Architecture", q:"What is a Distributed Lock Manager (DLM)?",
+   o:["A program that distributes files across nodes","A mechanism to avoid conflicting operations in clusters","A type of RAID controller","A network routing protocol"],
+   a:1, e:"A Distributed Lock Manager (DLM) is used in some clusters to avoid conflicting operations between nodes."},
+  {t:"Architecture", q:"In symmetric clustering:",
+   o:["Only one node does all the work","Multiple nodes run applications and monitor each other","One node monitors all others without running applications","Nodes operate completely independently"],
+   a:1, e:"In symmetric clustering, multiple nodes run applications while also monitoring each other."},
+
+  // ── OS STRUCTURE / MULTIPROGRAMMING ───────────────────────────────────
+  {t:"OS Structure", q:"Why is multiprogramming needed?",
+   o:["To allow multiple displays","A single user cannot keep the CPU and I/O devices busy at all times","To support multiple keyboards","To speed up the bootstrap process"],
+   a:1, e:"Multiprogramming is needed because a single user cannot keep the CPU and I/O devices busy at all times."},
+  {t:"OS Structure", q:"What does multiprogramming keep in memory?",
+   o:["All jobs in the system simultaneously","A subset of total jobs","Only one job at a time","Only system processes"],
+   a:1, e:"Multiprogramming keeps a subset of total jobs in memory; when one job waits, the OS switches to another."},
+  {t:"OS Structure", q:"In multiprogramming, when a job has to wait (e.g., for I/O), what does the OS do?",
+   o:["Terminates the job","Switches to another job","Waits with the job","Puts all jobs to sleep"],
+   a:1, e:"When a job has to wait for I/O, the OS switches the CPU to another job."},
+  {t:"OS Structure", q:"Timesharing is a logical extension of multiprogramming in which:",
+   o:["Jobs run simultaneously on multiple CPUs","The CPU switches jobs so frequently users can interact with each job while it is running","Each user gets a dedicated CPU","Only two users can share the system"],
+   a:1, e:"Timesharing switches jobs so frequently that users can interact with each job while it is running, creating interactive computing."},
+  {t:"OS Structure", q:"What is the goal for response time in a timesharing system?",
+   o:["Less than 5 seconds","Less than 1 second","Less than 10 milliseconds","Less than 1 minute"],
+   a:1, e:"Response time should be less than 1 second in a timesharing system for a good interactive experience."},
+  {t:"OS Structure", q:"What is 'swapping' in OS context?",
+   o:["Exchanging files between two users","Moving processes in and out of memory to run","Switching between CPUs","Changing cache contents"],
+   a:1, e:"Swapping moves processes in and out of memory to allow more processes to run than fit in memory at once."},
+  {t:"OS Structure", q:"What allows execution of processes not completely in memory?",
+   o:["Swapping only","Multiprogramming alone","Virtual memory","Cache expansion"],
+   a:2, e:"Virtual memory allows execution of processes not completely in memory by abstracting physical memory."},
+  {t:"OS Structure", q:"What is job scheduling in multiprogramming?",
+   o:["Selecting which process runs next on the CPU","Scheduling hardware maintenance","Organizing files on disk","Deciding network packet priority"],
+   a:0, e:"Job scheduling selects which job to run from the subset of jobs kept in memory."},
+  {t:"OS Structure", q:"If several jobs are ready to run at the same time, what is needed?",
+   o:["More RAM","CPU scheduling","Virtual memory","A faster disk"],
+   a:1, e:"If several processes are ready to run simultaneously, CPU scheduling is needed to decide which runs next."},
+  {t:"OS Structure", q:"Timesharing is also called:",
+   o:["Multiprogramming","Multiprocessing","Multitasking","Multithreading"],
+   a:2, e:"Timesharing is also called multitasking — it provides the illusion of multiple simultaneous interactions."},
+
+  // ── OS OPERATIONS / DUAL MODE ─────────────────────────────────────────
+  {t:"OS Operations", q:"What are the two modes in dual-mode operation?",
+   o:["Root mode and guest mode","User mode and kernel mode","Active mode and passive mode","Read mode and write mode"],
+   a:1, e:"Dual-mode operation provides user mode and kernel mode, distinguished by a hardware mode bit."},
+  {t:"OS Operations", q:"What hardware feature enables dual-mode operation?",
+   o:["The cache","A mode bit provided by hardware","The interrupt vector","The DMA controller"],
+   a:1, e:"A mode bit provided by hardware distinguishes when the system is running user code or kernel code."},
+  {t:"OS Operations", q:"Privileged instructions can only be executed in:",
+   o:["User mode","Either mode","Kernel mode","Protected user mode"],
+   a:2, e:"Some instructions are designated as privileged and can only be executed in kernel mode."},
+  {t:"OS Operations", q:"What happens to the mode when a system call is made?",
+   o:["Mode switches from kernel to user","Mode stays in user mode","Mode changes to kernel mode","Mode bit is disabled"],
+   a:2, e:"A system call changes the mode to kernel mode; returning from the call resets it to user mode."},
+  {t:"OS Operations", q:"Why does dual-mode operation matter?",
+   o:["It speeds up the CPU","It allows the OS to protect itself and other system components","It reduces power consumption","It enables multiple users to log in"],
+   a:1, e:"Dual-mode operation allows the OS to protect itself and other system components from faulty or malicious user code."},
+  {t:"OS Operations", q:"A timer in OS is used to:",
+   o:["Schedule calendar events","Prevent infinite loops or process hogging resources","Synchronize clocks across computers","Trigger screen savers"],
+   a:1, e:"A timer prevents infinite loops and process hogging by generating an interrupt when a counter reaches zero."},
+  {t:"OS Operations", q:"How does an OS timer work?",
+   o:["The OS polls the time continuously","A counter is decremented by the physical clock; when zero, it generates an interrupt","It sends signals to all processes every second","It is managed by the user"],
+   a:1, e:"The OS sets a counter (privileged instruction), which is decremented by the physical clock. When zero, an interrupt is generated."},
+  {t:"OS Operations", q:"What is VMM mode?",
+   o:["A low-power CPU mode","A virtual machine manager mode for guest VMs","A debugging mode for kernel developers","A read-only mode for secure processes"],
+   a:1, e:"Increasingly, CPUs support multi-mode operations including VMM mode for guest virtual machines."},
+  {t:"OS Operations", q:"Setting the timer counter is a:",
+   o:["User instruction","Privileged instruction (kernel only)","I/O instruction","Network instruction"],
+   a:1, e:"Operating system set the counter is a privileged instruction — only executable in kernel mode."},
+  {t:"OS Operations", q:"What type of interrupt is triggered by a software error?",
+   o:["Hardware interrupt","Timer interrupt","Trap (software interrupt / exception)","DMA interrupt"],
+   a:2, e:"A trap or exception is a software-generated interrupt, triggered by errors like division by zero."},
+
+  // ── PROCESS MANAGEMENT ────────────────────────────────────────────────
+  {t:"Process Management", q:"What is a process?",
+   o:["A program stored on disk","A program in execution — an active entity","A file in the filesystem","A hardware component"],
+   a:1, e:"A process is a program in execution. It is a unit of work within the system — an active entity."},
+  {t:"Process Management", q:"How does a process differ from a program?",
+   o:["A program is active; a process is passive","A process is active; a program is passive","They are identical","A process is stored on disk; a program runs in memory"],
+   a:1, e:"A program is a passive entity (stored on disk); a process is an active entity (executing in memory)."},
+  {t:"Process Management", q:"What resources does a process need?",
+   o:["Only CPU","Only memory","CPU, memory, I/O, files, and initialization data","Only I/O devices"],
+   a:2, e:"A process needs CPU, memory, I/O, files, and initialization data to accomplish its task."},
+  {t:"Process Management", q:"What happens to a process's resources upon termination?",
+   o:["They are transferred to another process","They are reclaimed/recycled","They remain allocated indefinitely","They are moved to virtual memory"],
+   a:1, e:"Process termination requires reclaiming any reusable resources."},
+  {t:"Process Management", q:"A single-threaded process has:",
+   o:["Multiple program counters","One program counter specifying the next instruction","No program counter","A program counter per function"],
+   a:1, e:"A single-threaded process has one program counter specifying the location of the next instruction to execute."},
+  {t:"Process Management", q:"A multi-threaded process has:",
+   o:["One shared program counter","One program counter per thread","No program counters","One program counter per CPU"],
+   a:1, e:"A multi-threaded process has one program counter per thread."},
+  {t:"Process Management", q:"Concurrency among processes/threads is achieved through:",
+   o:["Adding more RAM","Multiplexing the CPUs among processes/threads","Using faster disks","Reducing I/O operations"],
+   a:1, e:"Concurrency is achieved by multiplexing the CPUs among the processes and threads."},
+  {t:"Process Management", q:"Which is NOT an OS responsibility in process management?",
+   o:["Creating and deleting processes","Providing mechanisms for process synchronization","Manufacturing the CPU","Providing mechanisms for deadlock handling"],
+   a:2, e:"The OS is responsible for creating/deleting processes, synchronization, communication, and deadlock handling — not manufacturing the CPU."},
+  {t:"Process Management", q:"What mechanism allows processes to coordinate access to shared resources?",
+   o:["Virtual memory","Process synchronization","Disk scheduling","DMA"],
+   a:1, e:"The OS provides mechanisms for process synchronization to coordinate access to shared resources."},
+  {t:"Process Management", q:"What OS mechanism handles the situation where multiple processes are waiting for each other indefinitely?",
+   o:["Process scheduling","Swapping","Deadlock handling","Cache management"],
+   a:2, e:"The OS provides mechanisms for deadlock handling to resolve situations where processes wait indefinitely for each other."},
+
+  // ── MEMORY MANAGEMENT ─────────────────────────────────────────────────
+  {t:"Memory Management", q:"For a program to execute, its instructions must be:",
+   o:["Stored on the hard disk","In memory (at least partially)","In the CPU cache","In secondary storage"],
+   a:1, e:"All (or part) of a program's instructions must be in memory for it to execute."},
+  {t:"Memory Management", q:"What does memory management determine?",
+   o:["Which files to compress","What is in memory and when, to optimize CPU utilization","How much voltage the RAM uses","The physical layout of the hard disk"],
+   a:1, e:"Memory management determines what is in memory and when, optimizing CPU utilization and computer response to users."},
+  {t:"Memory Management", q:"Which is a memory management activity?",
+   o:["Compiling source code","Keeping track of which parts of memory are in use and by whom","Formatting disk drives","Routing network traffic"],
+   a:1, e:"A key memory management activity is tracking which parts of memory are currently being used and by whom."},
+  {t:"Memory Management", q:"Memory management handles:",
+   o:["Only static memory allocation","Allocating and deallocating memory space as needed","Only process stack management","Only kernel memory"],
+   a:1, e:"Memory management allocates and deallocates memory space as needed for processes."},
+  {t:"Memory Management", q:"Which of the following is an objective of memory management?",
+   o:["Maximizing disk usage","Optimizing CPU utilization and computer response to users","Reducing network latency","Minimizing energy consumption"],
+   a:1, e:"Memory management aims to optimize CPU utilization and computer response to users."},
+
+  // ── STORAGE MANAGEMENT ────────────────────────────────────────────────
+  {t:"Storage Management", q:"The OS abstracts physical storage properties to which logical unit?",
+   o:["Process","Thread","File","Sector"],
+   a:2, e:"The OS abstracts physical properties to the logical storage unit of a file."},
+  {t:"Storage Management", q:"Files are usually organized into:",
+   o:["Sectors","Directories","Blocks","Clusters only"],
+   a:1, e:"Files are usually organized into directories."},
+  {t:"Storage Management", q:"Access control in a file system determines:",
+   o:["How fast files are read","Who can access what","How files are compressed","File creation timestamps"],
+   a:1, e:"Access control on most systems determines who can access what files and directories."},
+  {t:"Storage Management", q:"Which is an OS file-system management activity?",
+   o:["Managing CPU clock speed","Mapping files onto secondary storage","Monitoring network traffic","Compiling program code"],
+   a:1, e:"OS file-system activities include creating/deleting files and directories, and mapping files onto secondary storage."},
+  {t:"Storage Management", q:"Which OS activity backs up data to prevent loss?",
+   o:["File compression","Backup files onto stable (non-volatile) storage media","Cache invalidation","Process migration"],
+   a:1, e:"An OS activity is backing up files onto stable, non-volatile storage media for protection against data loss."},
+  {t:"Storage Management", q:"Mass-storage management involves which OS activity?",
+   o:["CPU scheduling","Free-space management","Network configuration","Virtual machine setup"],
+   a:1, e:"Mass-storage management includes free-space management, storage allocation, and disk scheduling."},
+  {t:"Storage Management", q:"The entire speed of computer operation is said to hinge on:",
+   o:["Network speed","The disk subsystem and its algorithms","The CPU clock speed","RAM capacity"],
+   a:1, e:"Proper mass-storage management is critical — the entire speed of computer operation hinges on the disk subsystem and its algorithms."},
+
+  // ── PROTECTION AND SECURITY ───────────────────────────────────────────
+  {t:"Protection & Security", q:"What is 'protection' in OS terms?",
+   o:["Antivirus software","Any mechanism for controlling access of processes or users to resources","Physical security of the computer","Network firewall rules only"],
+   a:1, e:"Protection is any mechanism for controlling access of processes or users to resources defined by the OS."},
+  {t:"Protection & Security", q:"What is 'security' in OS terms?",
+   o:["Only file permissions","Defense of the system against internal and external attacks","Protection mechanisms only","Encryption of all data"],
+   a:1, e:"Security is the defense of the system against internal and external attacks, including denial-of-service, worms, viruses, and identity theft."},
+  {t:"Protection & Security", q:"Which of the following is an example of a security threat?",
+   o:["Running a user application","Denial-of-service attack","Creating a file","Logging in normally"],
+   a:1, e:"Security threats include denial-of-service attacks, worms, viruses, identity theft, and theft of service."},
+  {t:"Protection & Security", q:"A User ID contains:",
+   o:["Only a username","A name and associated number, one per user","Only a password hash","A list of all accessible files"],
+   a:1, e:"User identities (User IDs) include a name and an associated number, with one per user."},
+  {t:"Protection & Security", q:"A Group ID allows:",
+   o:["Multiple processes to share CPU time","A set of users to be defined with managed access controls","Automatic file encryption","Remote login without a password"],
+   a:1, e:"A Group ID allows a set of users to be defined and their access controls managed collectively."},
+  {t:"Protection & Security", q:"Privilege escalation allows a user to:",
+   o:["Gain permanent root access","Change to an effective ID with more rights","Grant other users admin access","Bypass all security checks"],
+   a:1, e:"Privilege escalation allows a user to change to an effective ID with more rights than their normal ID."},
+  {t:"Protection & Security", q:"User IDs and Group IDs are associated with:",
+   o:["Only the user's home directory","All files and processes of that user","Only system processes","Only network connections"],
+   a:1, e:"User ID is associated with all files and processes of that user, used to determine access control."},
+  {t:"Protection & Security", q:"What is the primary purpose of the I/O subsystem in the OS?",
+   o:["Speed up disk writes","Hide peculiarities of hardware devices from the user","Manage user accounts","Allocate CPU time"],
+   a:1, e:"One purpose of the OS is to hide the peculiarities of hardware devices from the user via the I/O subsystem."},
+
+  // ── KERNEL DATA STRUCTURES ────────────────────────────────────────────
+  {t:"Kernel Data Structures", q:"A doubly linked list differs from a singly linked list in that:",
+   o:["It stores more data per node","Each node has pointers to both next and previous nodes","It is circular","It is sorted automatically"],
+   a:1, e:"A doubly linked list has pointers to both the next and previous nodes, enabling traversal in both directions."},
+  {t:"Kernel Data Structures", q:"A binary search tree maintains the property that:",
+   o:["All values are sorted alphabetically","Left children ≤ parent ≤ right children","All leaves are at the same level","The tree is always balanced"],
+   a:1, e:"In a binary search tree, left ≤ right (left node value ≤ parent ≤ right node value)."},
+  {t:"Kernel Data Structures", q:"What is the search performance of an unbalanced binary search tree?",
+   o:["O(log n)","O(1)","O(n)","O(n²)"],
+   a:2, e:"An unbalanced binary search tree has O(n) search performance in the worst case."},
+  {t:"Kernel Data Structures", q:"A balanced binary search tree has search performance of:",
+   o:["O(n)","O(n²)","O(log n)","O(1)"],
+   a:2, e:"A balanced binary search tree has O(log n) search performance."},
+  {t:"Kernel Data Structures", q:"A hash function is used to create a:",
+   o:["Sorted array","Hash map for fast key-value lookup","Balanced tree","Circular buffer"],
+   a:1, e:"A hash function can create a hash map, enabling fast key-value lookups."},
+  {t:"Kernel Data Structures", q:"A bitmap in computing represents:",
+   o:["An image file","A string of n binary digits representing the status of n items","A compressed file format","A memory address map"],
+   a:1, e:"A bitmap is a string of n binary digits representing the status of n items (e.g., 0=free, 1=used)."},
+  {t:"Kernel Data Structures", q:"Which Linux header defines linked list data structures?",
+   o:["<linux/rbtree.h>","<linux/kfifo.h>","<linux/list.h>","<linux/bitmap.h>"],
+   a:2, e:"Linux defines linked list structures in the header file <linux/list.h>."},
+  {t:"Kernel Data Structures", q:"In a circular linked list:",
+   o:["Every node points back to the head","The last node points back to the first node","All nodes point to null","Nodes are arranged in a tree"],
+   a:1, e:"In a circular linked list, the last node points back to the first node, creating a circle."},
+
+  // ── COMPUTING ENVIRONMENTS ────────────────────────────────────────────
+  {t:"Computing Environments", q:"Network computers (thin clients) are similar to:",
+   o:["Supercomputers","Web terminals","Embedded controllers","Mainframes"],
+   a:1, e:"Network computers (thin clients) are like Web terminals — they rely on servers for computation and storage."},
+  {t:"Computing Environments", q:"Which two organizations are the leaders in mobile OS?",
+   o:["Microsoft and Oracle","Apple (iOS) and Google (Android)","Samsung and Nokia","IBM and Sun"],
+   a:1, e:"The leaders in mobile OS are Apple iOS and Google Android."},
+  {t:"Computing Environments", q:"In a distributed system, the most common network protocol is:",
+   o:["Bluetooth","USB","TCP/IP","Infrared"],
+   a:2, e:"In a distributed computing environment, TCP/IP is the most common network communications protocol."},
+  {t:"Computing Environments", q:"What does a Network Operating System provide?",
+   o:["Local file management only","Features between systems across a network with the illusion of a single system","Hardware virtualization","Physical network routing"],
+   a:1, e:"A Network Operating System provides features between systems across the network, enabling a communication scheme that can give the illusion of a single system."},
+  {t:"Computing Environments", q:"In client-server computing, a compute-server:",
+   o:["Stores files for clients","Provides an interface for clients to request services (e.g., database queries)","Broadcasts data to all clients","Only handles authentication"],
+   a:1, e:"A compute-server system provides an interface to client to request services such as database queries."},
+  {t:"Computing Environments", q:"In Peer-to-Peer (P2P), all nodes are considered:",
+   o:["Clients only","Servers only","Peers — each may act as client, server, or both","Master and slave pairs"],
+   a:2, e:"In P2P, there is no client-server distinction — all nodes are peers and may each act as client, server, or both."},
+  {t:"Computing Environments", q:"Napster and Gnutella are examples of:",
+   o:["Client-server systems","Distributed databases","Peer-to-Peer networks","Virtualization platforms"],
+   a:2, e:"Napster and Gnutella are examples of Peer-to-Peer networks."},
+  {t:"Computing Environments", q:"Emulation is used when:",
+   o:["The OS is virtualized","The source CPU type is different from the target type","Two OSes share the same hardware","A process needs extra memory"],
+   a:1, e:"Emulation is used when the source CPU type differs from the target type, such as PowerPC to Intel x86."},
+  {t:"Computing Environments", q:"Virtualization allows OSes to run applications:",
+   o:["Faster than native execution","Within other operating systems","Without any hardware","Using only emulation"],
+   a:1, e:"Virtualization allows operating systems to run applications within other OSes."},
+  {t:"Computing Environments", q:"What does VMware ESX represent?",
+   o:["A type of cluster","A VMM that runs natively with no general-purpose host OS","An open-source OS","A network protocol"],
+   a:1, e:"VMware ESX is a VMM that runs natively — there is no general-purpose host OS."},
+  {t:"Computing Environments", q:"Cloud computing is a logical extension of:",
+   o:["Client-server computing","Embedded systems","Virtualization","Peer-to-peer networking"],
+   a:2, e:"Cloud computing is a logical extension of virtualization because it uses virtualization as the base for its functionality."},
+  {t:"Computing Environments", q:"Which cloud model is available to anyone willing to pay via the Internet?",
+   o:["Private cloud","Hybrid cloud","Public cloud","Community cloud"],
+   a:2, e:"A public cloud is available via the Internet to anyone willing to pay for the service."},
+  {t:"Computing Environments", q:"SaaS stands for:",
+   o:["Storage as a Service","Software as a Service","Security as a System","Scheduling as a Service"],
+   a:1, e:"SaaS stands for Software as a Service — one or more applications available via the Internet."},
+  {t:"Computing Environments", q:"PaaS stands for:",
+   o:["Platform as a Service","Protocol as a System","Processing as a Service","Permission as a Service"],
+   a:0, e:"PaaS stands for Platform as a Service — a software stack ready for application use via the Internet."},
+  {t:"Computing Environments", q:"A real-time OS must process data within:",
+   o:["An hour","A flexible timeframe","Well-defined fixed time constraints","The next boot cycle"],
+   a:2, e:"A real-time OS has well-defined fixed time constraints — processing must be done within the constraint for correct operation."},
+  {t:"Computing Environments", q:"What makes a real-time system's operation 'correct'?",
+   o:["Only that the result is accurate","Only that it completes eventually","That the result is accurate AND delivered within the time constraint","That it uses minimum resources"],
+   a:2, e:"In a real-time system, correct operation means the constraint must be met — timeliness is part of correctness."},
+
+  // ── OPEN-SOURCE OS ────────────────────────────────────────────────────
+  {t:"Open-Source OS", q:"What distinguishes an open-source OS from a closed-source one?",
+   o:["It is always free to use","It is made available in source-code format","It requires no installation","It runs only on Linux hardware"],
+   a:1, e:"An open-source OS is made available in source-code format, allowing users to view, modify, and redistribute the code."},
+  {t:"Open-Source OS", q:"The Free Software Foundation (FSF) created which license?",
+   o:["MIT License","Apache License","GNU Public License (GPL)","BSD License"],
+   a:2, e:"The Free Software Foundation created the GNU Public License (GPL), a 'copyleft' license."},
+  {t:"Open-Source OS", q:"'Copyleft' refers to:",
+   o:["Traditional copyright","A license requiring that derivative works also remain open-source","A license allowing any commercial use","Patenting software algorithms"],
+   a:1, e:"'Copyleft' (GPL) requires that derivative works also be distributed under the same open-source license."},
+  {t:"Open-Source OS", q:"Which of the following is an open-source operating system?",
+   o:["Windows 11","macOS Ventura","GNU/Linux","iOS"],
+   a:2, e:"GNU/Linux is an open-source operating system. BSD UNIX is another example."},
+  {t:"Open-Source OS", q:"The core of Mac OS X is based on which open-source system?",
+   o:["GNU/Linux","BSD UNIX","Minix","Android"],
+   a:1, e:"BSD UNIX forms the core of Mac OS X."},
+  {t:"Open-Source OS", q:"VirtualBox is described as:",
+   o:["A commercial-only product","Open source and free on many platforms","Only available on Windows","Part of the Windows OS"],
+   a:1, e:"VirtualBox is open source and free on many platforms, available at virtualbox.com."},
+  {t:"Open-Source OS", q:"Open-source OS is counter to which movement?",
+   o:["Distributed computing","Copy protection and Digital Rights Management (DRM)","Cloud computing","Peer-to-peer networking"],
+   a:1, e:"Open-source OS is a counter-movement to copy protection and Digital Rights Management (DRM)."},
+  {t:"Open-Source OS", q:"Why would a developer use a virtual machine with an open-source OS?",
+   o:["To speed up their production server","To explore or test without needing multiple physical systems","To replace hardware permanently","To avoid writing drivers"],
+   a:1, e:"Developers use VMs with open-source OSes to run guest operating systems for exploration or compatibility testing without multiple physical machines."},
+];
+
+// ── GAME STATE ─────────────────────────────────────────────────────────────
+let questions = [];
+let currentIdx = 0;
+let score = 0;
+let lives = 3;
+let streak = 0;
+let bestStreak = 0;
+let correctCount = 0;
+let timerInterval = null;
+let timeLeft = 20;
+let answered = false;
+let history = [];
+
+const TOTAL_TIME = 20;
+const CIRCUMFERENCE = 2 * Math.PI * 22; // ~138.2
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  questions = shuffle(QUESTIONS).slice(0, 150);
+  currentIdx = 0; score = 0; lives = 3; streak = 0; bestStreak = 0; correctCount = 0; history = [];
+  show('game-screen');
+  updateHUD();
+  loadQuestion();
+}
+
+function restartGame() {
+  startGame();
+}
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function updateHUD() {
+  document.getElementById('score-display').textContent = score.toLocaleString();
+  const livesEl = document.getElementById('lives-display');
+  livesEl.querySelectorAll('.life').forEach((l, i) => {
+    l.classList.toggle('lost', i >= lives);
+  });
+  const badge = document.getElementById('streak-badge');
+  if (streak >= 3) {
+    badge.classList.add('show');
+    document.getElementById('streak-num').textContent = streak;
+  } else {
+    badge.classList.remove('show');
+  }
+  const pct = (currentIdx / questions.length) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `${currentIdx} / ${questions.length}`;
+}
+
+function loadQuestion() {
+  if (currentIdx >= questions.length) { endGame(); return; }
+  answered = false;
+  const q = questions[currentIdx];
+
+  document.getElementById('q-num').textContent = `Q ${currentIdx + 1}`;
+  document.getElementById('q-topic').textContent = q.t;
+  document.getElementById('q-text').textContent = q.q;
+
+  // Shuffle options while tracking correct answer
+  const indices = shuffle([0,1,2,3]);
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  let newCorrect = 0;
+  indices.forEach((origIdx, newIdx) => {
+    if (origIdx === q.a) newCorrect = newIdx;
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="opt-letter">${['A','B','C','D'][newIdx]}</span>${q.o[origIdx]}`;
+    btn.dataset.idx = newIdx;
+    btn.dataset.orig = origIdx;
+    btn.onclick = () => selectAnswer(btn, newCorrect, q);
+    opts.appendChild(btn);
+  });
+
+  // Reset feedback & next button
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback'; fb.textContent = '';
+  document.getElementById('next-btn').classList.remove('show');
+
+  startTimer();
+  // animate card
+  const card = document.getElementById('q-card');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = '';
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = TOTAL_TIME;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) timeOut();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  document.getElementById('timer-num').textContent = timeLeft;
+  const circle = document.getElementById('timer-circle');
+  const offset = CIRCUMFERENCE * (1 - timeLeft / TOTAL_TIME);
+  circle.style.strokeDashoffset = offset;
+  const hue = timeLeft > 10 ? 'var(--accent)' : timeLeft > 5 ? 'var(--yellow)' : 'var(--red)';
+  circle.style.stroke = hue;
+  document.getElementById('timer-num').style.color = hue;
+}
+
+function selectAnswer(btn, correctIdx, q) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const opts = document.querySelectorAll('.option-btn');
+  opts.forEach(b => b.disabled = true);
+
+  const selected = parseInt(btn.dataset.idx);
+  const isCorrect = selected === correctIdx;
+
+  opts.forEach(b => {
+    if (parseInt(b.dataset.idx) === correctIdx) b.classList.add('correct');
+  });
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    const bonus = Math.max(0, timeLeft - 5);
+    const pts = 100 + bonus * 10;
+    score += pts;
+    streak++;
+    correctCount++;
+    if (streak > bestStreak) bestStreak = streak;
+    flashScreen('green');
+    if (streak > 0 && streak % 5 === 0) showCombo(streak);
+    history.push({correct:true, q:q.q, a:q.o[q.a]});
+  } else {
+    btn.classList.add('wrong');
+    lives--;
+    streak = 0;
+    flashScreen('red');
+    history.push({correct:false, q:q.q, a:q.o[q.a]});
+  }
+
+  // Show explanation
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+  fb.textContent = (isCorrect ? '✓ ' : '✗ ') + q.e;
+
+  document.getElementById('next-btn').classList.add('show');
+  updateHUD();
+
+  if (lives <= 0) {
+    setTimeout(() => { clearInterval(timerInterval); endGame(); }, 1800);
+  }
+}
+
+function timeOut() {
+  if (answered) return;
+  answered = true;
+  const q = questions[currentIdx];
+  lives--;
+  streak = 0;
+  flashScreen('red');
+  const opts = document.querySelectorAll('.option-btn');
+  opts.forEach(b => {
+    b.disabled = true;
+    if (parseInt(b.dataset.idx) === /* we need correct new idx */ -1) {}
+  });
+  // highlight all correct options
+  opts.forEach(b => {
+    if (parseInt(b.dataset.orig) === q.a) b.classList.add('correct');
+  });
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show wrong-fb';
+  fb.textContent = '⏱ Time\'s up! ' + q.e;
+  document.getElementById('next-btn').classList.add('show');
+  history.push({correct:false, q:q.q, a:q.o[q.a]});
+  updateHUD();
+  if (lives <= 0) setTimeout(() => endGame(), 1800);
+}
+
+function nextQuestion() {
+  currentIdx++;
+  updateHUD();
+  if (currentIdx >= questions.length || lives <= 0) { endGame(); return; }
+  loadQuestion();
+}
+
+function flashScreen(color) {
+  const f = document.getElementById('flash');
+  f.className = `flash ${color} show`;
+  setTimeout(() => f.className = 'flash', 200);
+}
+
+function showCombo(n) {
+  const p = document.getElementById('combo-popup');
+  p.textContent = `🔥 ${n}x COMBO!`;
+  p.className = 'combo-popup pop';
+  setTimeout(() => p.className = 'combo-popup', 900);
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  const total = Math.min(currentIdx + 1, questions.length);
+  const pct = Math.round((correctCount / Math.max(total,1)) * 100);
+
+  let grade, msg, color;
+  if (pct >= 90)      { grade='A+'; msg='OUTSTANDING!';    color='var(--green)'; }
+  else if (pct >= 80) { grade='A';  msg='EXCELLENT!';       color='var(--green)'; }
+  else if (pct >= 70) { grade='B';  msg='WELL DONE!';       color='var(--accent)'; }
+  else if (pct >= 60) { grade='C';  msg='KEEP STUDYING!';   color='var(--yellow)'; }
+  else if (pct >= 50) { grade='D';  msg='NEEDS WORK!';      color='var(--accent2)'; }
+  else                { grade='F';  msg='TRY AGAIN!';        color='var(--red)'; }
+
+  document.getElementById('result-grade').textContent = grade;
+  document.getElementById('result-grade').style.color = color;
+  document.getElementById('result-msg').textContent = msg;
+  document.getElementById('r-score').textContent = score.toLocaleString();
+  document.getElementById('r-correct').textContent = `${correctCount}/${total}`;
+  document.getElementById('r-pct').textContent = pct + '%';
+  document.getElementById('r-streak').textContent = bestStreak;
+
+  const bd = document.getElementById('result-breakdown');
+  bd.innerHTML = '';
+  history.forEach((h, i) => {
+    const row = document.createElement('div');
+    row.className = 'rb-row';
+    row.innerHTML = `<span class="rb-icon">${h.correct ? '✅' : '❌'}</span>
+      <span class="rb-q">Q${i+1}: ${h.q.length > 60 ? h.q.slice(0,60)+'…' : h.q}</span>
+      <span class="rb-a">${h.a.length > 30 ? h.a.slice(0,30)+'…' : h.a}</span>`;
+    bd.appendChild(row);
+  });
+
+  show('result-screen');
+}
+</script>
+</body>
+</html>
