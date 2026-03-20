@@ -380,6 +380,38 @@
     98% { opacity:0.6; }
   }
 
+  /* Pause button */
+  .pause-btn {
+    font-family:'Orbitron',monospace; font-size:0.75rem; letter-spacing:2px;
+    color: var(--accent); background: transparent;
+    border: 1px solid rgba(0,212,255,0.35); border-radius:6px;
+    padding:0.45rem 1rem; cursor:pointer;
+    transition: all 0.2s;
+  }
+  .pause-btn:hover { background: rgba(0,212,255,0.1); border-color: var(--accent); box-shadow: var(--glow); }
+
+  /* Pause overlay */
+  #pause-overlay {
+    display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(4,13,26,0.92); backdrop-filter: blur(6px);
+    z-index: 500; align-items:center; justify-content:center; flex-direction:column;
+    gap: 1.5rem;
+  }
+  #pause-overlay.show { display:flex; }
+  .pause-title {
+    font-family:'Orbitron',monospace; font-size:2.5rem; font-weight:900;
+    color: var(--accent); text-shadow: var(--glow);
+    letter-spacing: 6px;
+  }
+  .pause-sub { color: var(--muted); font-size:0.85rem; letter-spacing:2px; }
+  .resume-btn {
+    font-family:'Orbitron',monospace; font-size:0.9rem; letter-spacing:3px;
+    color:var(--bg); background:var(--accent); border:none; border-radius:6px;
+    padding:0.9rem 2.5rem; cursor:pointer;
+    box-shadow:var(--glow); transition:all 0.2s; margin-top:0.5rem;
+  }
+  .resume-btn:hover { transform:translateY(-2px); box-shadow:0 0 40px rgba(0,212,255,0.7); }
+
   /* Responsive */
   @media (max-width:600px) {
     .q-card { padding:1.2rem; }
@@ -402,7 +434,7 @@
     </div>
     <div class="stats-row">
       <div class="stat-box"><div class="val">150</div><div class="lbl">Questions</div></div>
-      <div class="stat-box"><div class="val">20s</div><div class="lbl">Per Question</div></div>
+      <div class="stat-box"><div class="val">30s</div><div class="lbl">Per Question</div></div>
       <div class="stat-box"><div class="val">3</div><div class="lbl">Lives</div></div>
     </div>
     <div class="topic-list">
@@ -439,13 +471,21 @@
             <circle class="bg-circle" cx="26" cy="26" r="22"/>
             <circle class="fg-circle" id="timer-circle" cx="26" cy="26" r="22"/>
           </svg>
-          <div class="timer-num" id="timer-num">20</div>
+          <div class="timer-num" id="timer-num">30</div>
         </div>
       </div>
       <div class="lives" id="lives-display">
         <span class="life">❤️</span><span class="life">❤️</span><span class="life">❤️</span>
       </div>
+      <button class="pause-btn" onclick="togglePause()">⏸ PAUSE</button>
     </div>
+
+  <!-- PAUSE OVERLAY -->
+  <div id="pause-overlay">
+    <div class="pause-title">PAUSED</div>
+    <div class="pause-sub">GAME IS ON HOLD · TIMER STOPPED</div>
+    <button class="resume-btn" onclick="togglePause()">▶ &nbsp; RESUME</button>
+  </div>
     <div class="progress-wrap">
       <div class="progress-bar" id="progress-bar" style="width:0%"></div>
     </div>
@@ -1087,8 +1127,9 @@ let timerInterval = null;
 let timeLeft = 20;
 let answered = false;
 let history = [];
+let paused = false;
 
-const TOTAL_TIME = 20;
+const TOTAL_TIME = 30;
 const CIRCUMFERENCE = 2 * Math.PI * 22; // ~138.2
 
 function shuffle(arr) {
@@ -1103,6 +1144,9 @@ function shuffle(arr) {
 function startGame() {
   questions = shuffle(QUESTIONS).slice(0, 150);
   currentIdx = 0; score = 0; lives = 3; streak = 0; bestStreak = 0; correctCount = 0; history = [];
+  paused = false;
+  document.getElementById('pause-overlay').classList.remove('show');
+  document.querySelector('.pause-btn') && (document.querySelector('.pause-btn').textContent = '⏸ PAUSE');
   show('game-screen');
   updateHUD();
   loadQuestion();
@@ -1110,6 +1154,27 @@ function startGame() {
 
 function restartGame() {
   startGame();
+}
+
+function togglePause() {
+  if (answered || lives <= 0) return; // no pause after answering or game over
+  paused = !paused;
+  const overlay = document.getElementById('pause-overlay');
+  const btn = document.querySelector('.pause-btn');
+  if (paused) {
+    clearInterval(timerInterval);
+    overlay.classList.add('show');
+    btn.textContent = '▶ RESUME';
+  } else {
+    overlay.classList.remove('show');
+    btn.textContent = '⏸ PAUSE';
+    // restart timer from where it left off
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateTimerDisplay();
+      if (timeLeft <= 0) { clearInterval(timerInterval); if (!answered) timeOut(); }
+    }, 1000);
+  }
 }
 
 function show(id) {
