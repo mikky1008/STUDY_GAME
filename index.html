@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSQuest — Chapter 1 Quiz Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="stars"></div>
+<div id="app">
+
+  <!-- ── START SCREEN ─────────────────────────────────────── -->
+  <div id="start-screen" class="screen active">
+    <div class="logo-wrap">
+      <div class="logo-sub">Operating Systems</div>
+      <div class="logo">OS<span>QUEST</span></div>
+      <div class="logo-chapter">Chapter 1 · Introduction</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="val">150</div><div class="lbl">Questions</div></div>
+      <div class="stat-box"><div class="val">3</div><div class="lbl">Stages</div></div>
+      <div class="stat-box"><div class="val">30s</div><div class="lbl">Per Question</div></div>
+      <div class="stat-box"><div class="val">3</div><div class="lbl">Lives</div></div>
+    </div>
+    <div class="start-actions">
+      <button class="start-btn primary-btn" onclick="show('stage-screen')">▶ &nbsp; PLAY GAME</button>
+      <button class="start-btn ghost-btn"   onclick="show('cheat-screen')">📋 &nbsp; STUDY CHEAT SHEET</button>
+    </div>
+  </div>
+
+  <!-- ── STAGE SELECT SCREEN ──────────────────────────────── -->
+  <div id="stage-screen" class="screen">
+    <div class="stage-header">
+      <button class="back-btn" onclick="show('start-screen')">← BACK</button>
+      <div class="stage-title">SELECT <span>STAGE</span></div>
+      <div></div>
+    </div>
+    <div class="stage-cards">
+
+      <div class="stage-card" onclick="startGame(1)">
+        <div class="stage-num-badge">01</div>
+        <div class="stage-card-icon">🧱</div>
+        <div class="stage-card-name">FOUNDATIONS</div>
+        <div class="stage-card-desc">OS basics, system structure, bootstrap, system organization &amp; interrupts</div>
+        <div class="stage-card-topics">
+          <span>What is an OS</span><span>System Structure</span><span>OS Definition</span>
+          <span>Bootstrap</span><span>System Org</span><span>Interrupts</span>
+        </div>
+        <div class="stage-card-count">50 Questions · 30s each</div>
+        <div class="stage-play-btn">START STAGE 1 →</div>
+      </div>
+
+      <div class="stage-card" onclick="startGame(2)">
+        <div class="stage-num-badge">02</div>
+        <div class="stage-card-icon">⚙️</div>
+        <div class="stage-card-name">HARDWARE &amp; STORAGE</div>
+        <div class="stage-card-desc">I/O structure, DMA, storage hierarchy, caching &amp; system architecture</div>
+        <div class="stage-card-topics">
+          <span>I/O &amp; DMA</span><span>Storage Basics</span><span>Storage Structure</span>
+          <span>Hierarchy</span><span>Caching</span><span>Architecture</span>
+        </div>
+        <div class="stage-card-count">50 Questions · 30s each</div>
+        <div class="stage-play-btn">START STAGE 2 →</div>
+      </div>
+
+      <div class="stage-card" onclick="startGame(3)">
+        <div class="stage-num-badge">03</div>
+        <div class="stage-card-icon">🧠</div>
+        <div class="stage-card-name">OS MANAGEMENT</div>
+        <div class="stage-card-desc">Multiprogramming, dual-mode, process/memory/storage management, security &amp; environments</div>
+        <div class="stage-card-topics">
+          <span>Multiprogramming</span><span>Dual-Mode</span><span>Process Mgmt</span>
+          <span>Memory Mgmt</span><span>Protection</span><span>Environments</span>
+        </div>
+        <div class="stage-card-count">50 Questions · 30s each</div>
+        <div class="stage-play-btn">START STAGE 3 →</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── CHEAT SHEET SCREEN ────────────────────────────────── -->
+  <div id="cheat-screen" class="screen">
+    <div class="cs-header">
+      <div class="cs-title">Cheat Sheet <span>CHAPTER 1 · INTRODUCTION TO OS</span></div>
+      <button class="cs-back" onclick="show('start-screen')">← BACK</button>
+    </div>
+    <div class="cs-grid">
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">🖥</span><span class="cs-topic">What is an OS</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Definition:</span> <span class="cs-val">Intermediary between user and hardware — manages resources &amp; enables program execution</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Resource Allocator:</span> <span class="cs-val">Manages all resources; decides between conflicting requests for fair, efficient use</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Control Program:</span> <span class="cs-val">Controls execution to prevent errors and improper use</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Kernel:</span> <span class="cs-val">The ONE program always running; everything else is a system or application program</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">No universal definition</span> <span class="cs-val">— varies wildly between vendors</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">🔲</span><span class="cs-topic">Computer System Structure</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">4 Components:</span> <span class="cs-val">Hardware → OS → Application Programs → Users</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Hardware:</span> <span class="cs-val">CPU, memory, I/O devices — basic computing resources</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">OS:</span> <span class="cs-val">Controls &amp; coordinates hardware use among apps and users</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Users:</span> <span class="cs-val">People, machines, other computers</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Bootstrap:</span> <span class="cs-val">Stored in ROM/EPROM (firmware); initializes system &amp; loads kernel at power-up</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">⚡</span><span class="cs-topic">Interrupts</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Interrupt:</span> <span class="cs-val">Device controller signals CPU it's done by causing an interrupt</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Interrupt Vector:</span> <span class="cs-val">Contains addresses of ALL interrupt service routines</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Trap/Exception:</span> <span class="cs-val">Software-generated interrupt (e.g., divide by zero, system call)</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">OS saves:</span> <span class="cs-val">Registers &amp; program counter when interrupt occurs</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">OS is interrupt-driven</span> <span class="cs-val">— polling vs. vectored interrupt handling</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">📡</span><span class="cs-topic">I/O Structure &amp; DMA</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Synchronous I/O:</span> <span class="cs-val">Control returns to program only AFTER I/O completes</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Async I/O:</span> <span class="cs-val">Control returns immediately without waiting</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">DMA:</span> <span class="cs-val">Device controller transfers blocks directly to RAM without CPU — only 1 interrupt per block</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Device-status table:</span> <span class="cs-val">Entry per device: type, address, state</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Each controller:</span> <span class="cs-val">Manages its device type; has a local buffer</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">💾</span><span class="cs-topic">Storage Hierarchy</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Fastest → Slowest:</span> <span class="cs-val">Registers → Cache → RAM → SSD → HDD → Optical/Tape</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Main Memory (RAM):</span> <span class="cs-val">Only storage CPU accesses directly; volatile; random access</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Secondary Storage:</span> <span class="cs-val">Large, non-volatile (HDD: tracks→sectors; SSD: faster, non-volatile)</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Tertiary:</span> <span class="cs-val">Optical, tape — WORM or RW</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Device Driver:</span> <span class="cs-val">Uniform interface between controller and kernel</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">⚡</span><span class="cs-topic">Caching</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Caching:</span> <span class="cs-val">Copying info into faster storage temporarily</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Cache hit:</span> <span class="cs-val">Data found → used directly (fast)</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Cache miss:</span> <span class="cs-val">Data fetched from slower storage, copied to cache, then used</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Cache &lt; storage it caches</span> <span class="cs-val">→ replacement policy is a key design problem</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Multiprocessor:</span> <span class="cs-val">Cache coherency — all CPUs must see the most recent value</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">🔧</span><span class="cs-topic">System Architecture</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">SMP:</span> <span class="cs-val">Symmetric Multiprocessing — all CPUs perform all tasks</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">AMP:</span> <span class="cs-val">Asymmetric — each CPU assigned a specific task</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Multi-core:</span> <span class="cs-val">Multiple cores on one chip — faster on-chip communication</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Clustered:</span> <span class="cs-val">Multiple systems sharing storage via SAN; high availability</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Asymmetric cluster:</span> <span class="cs-val">Hot-standby mode | Symmetric: mutual monitoring</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">📋</span><span class="cs-topic">OS Structure &amp; Multiprogramming</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Multiprogramming:</span> <span class="cs-val">Keeps CPU busy by switching jobs when one waits for I/O</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Timesharing/Multitasking:</span> <span class="cs-val">CPU switches so fast users can interact — goal &lt;1 sec response</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Virtual Memory:</span> <span class="cs-val">Run processes not fully in RAM</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Swapping:</span> <span class="cs-val">Move processes in/out of memory</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Job Scheduling:</span> <span class="cs-val">Select next job to run from memory subset</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">🔐</span><span class="cs-topic">Dual-Mode &amp; OS Operations</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Dual-Mode:</span> <span class="cs-val">User mode vs Kernel mode — distinguished by hardware mode bit</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Privileged instructions:</span> <span class="cs-val">Only in kernel mode</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">System call:</span> <span class="cs-val">Switches to kernel mode; return resets to user mode</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Timer:</span> <span class="cs-val">Prevents infinite loops — counter decremented by clock; interrupt at zero</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">VMM mode:</span> <span class="cs-val">Supports guest VMs on modern CPUs</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">▶</span><span class="cs-topic">Process Management</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Process:</span> <span class="cs-val">Program in execution — active entity (program = passive)</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Needs:</span> <span class="cs-val">CPU, memory, I/O, files, initialization data</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Single-threaded:</span> <span class="cs-val">One program counter | Multi-threaded: one PC per thread</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">OS activities:</span> <span class="cs-val">Create/delete, suspend/resume, synchronization, communication, deadlock handling</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Concurrency:</span> <span class="cs-val">Achieved by multiplexing CPUs among processes/threads</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">🗃</span><span class="cs-topic">Memory &amp; Storage Management</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Memory Mgmt:</span> <span class="cs-val">Determines what's in memory and when — tracks usage, allocates/deallocates</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Storage abstraction:</span> <span class="cs-val">Physical storage → logical unit = FILE</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">File system:</span> <span class="cs-val">Create/delete files &amp; dirs, access control, backup, map to secondary storage</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Mass-storage:</span> <span class="cs-val">Free-space mgmt, storage allocation, disk scheduling</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">I/O subsystem:</span> <span class="cs-val">Hides hardware quirks — buffering, caching, spooling, device drivers</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">🛡</span><span class="cs-topic">Protection &amp; Security</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Protection:</span> <span class="cs-val">Controls access of processes/users to OS-defined resources</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Security:</span> <span class="cs-val">Defense against attacks — DoS, worms, viruses, identity theft</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">User ID:</span> <span class="cs-val">Name + number, one per user — associated with all their files/processes</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Group ID:</span> <span class="cs-val">Defines a set of users with shared access controls</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Privilege escalation:</span> <span class="cs-val">Change to effective ID with more rights</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">🧩</span><span class="cs-topic">Kernel Data Structures</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Linked lists:</span> <span class="cs-val">Singly, doubly, circular</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">BST:</span> <span class="cs-val">left ≤ parent ≤ right; O(n) search; balanced BST: O(log n)</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Hash map:</span> <span class="cs-val">Hash function → fast key-value lookup</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Bitmap:</span> <span class="cs-val">n binary digits representing status of n items (e.g., free/used)</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Linux headers:</span> <span class="cs-val">&lt;linux/list.h&gt;, &lt;linux/kfifo.h&gt;, &lt;linux/rbtree.h&gt;</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">🌐</span><span class="cs-topic">Computing Environments</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Mobile:</span> <span class="cs-val">iOS &amp; Android; GPS, gyroscope, AR; optimized for battery</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Distributed:</span> <span class="cs-val">Heterogeneous systems via TCP/IP (LAN/WAN/MAN/PAN)</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Client-Server:</span> <span class="cs-val">Compute-server (services) / File-server (storage)</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">P2P:</span> <span class="cs-val">No client/server distinction — all nodes are peers (Napster, Skype)</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Cloud:</span> <span class="cs-val">SaaS / PaaS / IaaS; Public / Private / Hybrid; built on virtualization</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Real-time:</span> <span class="cs-val">Fixed time constraints — correct = accurate + on time</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">💻</span><span class="cs-topic">Virtualization &amp; Open-Source OS</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Virtualization:</span> <span class="cs-val">Guest OS runs within a host OS via VMM</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Emulation:</span> <span class="cs-val">Source CPU type ≠ target CPU (slowest method)</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">VMM examples:</span> <span class="cs-val">VMware ESX, Citrix XenServer (no general-purpose host)</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Open-Source OS:</span> <span class="cs-val">Source code publicly available — counter to DRM/closed-source</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">GPL (Copyleft):</span> <span class="cs-val">FSF license — derivatives must stay open-source. Examples: GNU/Linux, BSD UNIX</span></div></div>
+        </div>
+      </div>
+
+      <div class="cs-card">
+        <div class="cs-card-head"><span class="cs-icon">📏</span><span class="cs-topic">Storage Units Quick Reference</span></div>
+        <div class="cs-card-body">
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Bit:</span> <span class="cs-val">Basic unit — 0 or 1</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Byte:</span> <span class="cs-val">8 bits (smallest convenient chunk)</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">KB / MB / GB:</span> <span class="cs-val">1,024 / 1,024² / 1,024³ bytes</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">TB / PB:</span> <span class="cs-val">1,024⁴ / 1,024⁵ bytes</span></div></div>
+          <div class="cs-item"><span class="cs-bullet">›</span><div><span class="cs-key">Networking:</span> <span class="cs-val">Measured in BITS (not bytes) — networks move data a bit at a time</span></div></div>
+        </div>
+      </div>
+
+    </div>
+    <button class="cs-play-btn" onclick="show('stage-screen')">▶ &nbsp; READY — SELECT A STAGE</button>
+  </div>
+
+  <!-- ── GAME SCREEN ───────────────────────────────────────── -->
+  <div id="game-screen" class="screen">
+    <div class="hud">
+      <div class="hud-left">
+        <div class="hud-stage-badge" id="hud-stage">STAGE 1</div>
+        <div class="hud-score">
+          <span class="hud-score-lbl">Score</span>
+          <span class="hud-score-val" id="score-display">0</span>
+        </div>
+      </div>
+      <div class="hud-center">
+        <div class="streak-badge" id="streak-badge">🔥 <span id="streak-num">0</span> Streak!</div>
+      </div>
+      <div class="hud-right">
+        <div class="timer-ring">
+          <svg width="52" height="52" viewBox="0 0 52 52">
+            <circle class="bg-circle" cx="26" cy="26" r="22"/>
+            <circle class="fg-circle" id="timer-circle" cx="26" cy="26" r="22"/>
+          </svg>
+          <div class="timer-num" id="timer-num">30</div>
+        </div>
+        <div class="lives" id="lives-display">
+          <span class="life">❤️</span><span class="life">❤️</span><span class="life">❤️</span>
+        </div>
+        <button class="pause-btn" onclick="togglePause()">⏸ PAUSE</button>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+    </div>
+    <div class="progress-label" id="progress-label">0 / 50</div>
+
+    <div class="q-card" id="q-card">
+      <div class="q-meta">
+        <span class="q-num" id="q-num">Q 1</span>
+        <span class="q-topic" id="q-topic">Topic</span>
+      </div>
+      <div class="q-text" id="q-text">Question text here</div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">NEXT →</button>
+    </div>
+  </div>
+
+  <!-- ── RESULT SCREEN ─────────────────────────────────────── -->
+  <div id="result-screen" class="screen">
+    <div class="result-stage-label" id="result-stage-label">STAGE 1 COMPLETE</div>
+    <div class="result-grade" id="result-grade">A+</div>
+    <div class="result-msg" id="result-msg">Outstanding!</div>
+    <div class="result-stats">
+      <div class="r-stat"><div class="rv" id="r-score">0</div><div class="rl">Score</div></div>
+      <div class="r-stat"><div class="rv" id="r-correct">0</div><div class="rl">Correct</div></div>
+      <div class="r-stat"><div class="rv" id="r-pct">0%</div><div class="rl">Accuracy</div></div>
+      <div class="r-stat"><div class="rv" id="r-streak">0</div><div class="rl">Best Streak</div></div>
+    </div>
+    <div class="result-breakdown" id="result-breakdown"></div>
+    <div class="result-actions">
+      <button class="restart-btn ghost-result-btn" onclick="startGame(window._currentStage)">↺ RETRY STAGE</button>
+      <button class="restart-btn primary-result-btn" id="next-stage-btn" onclick="goNextStage()">NEXT STAGE →</button>
+      <button class="restart-btn ghost-result-btn" onclick="show('stage-screen')">⊞ ALL STAGES</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Pause overlay (outside #app so it covers everything) -->
+<div id="pause-overlay">
+  <div class="pause-title">PAUSED</div>
+  <div class="pause-sub">GAME IS ON HOLD · TIMER STOPPED</div>
+  <button class="resume-btn" onclick="togglePause()">▶ &nbsp; RESUME</button>
+</div>
+
+<div class="flash" id="flash"></div>
+<div class="combo-popup" id="combo-popup"></div>
+
+<script src="questions.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
