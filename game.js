@@ -27,6 +27,8 @@ const CIRCUMFERENCE       = 2 * Math.PI * 22;
 function getPool(subjectKey, stage) {
   if (subjectKey === 'os') {
     return (typeof OS_STAGE_POOLS !== 'undefined' && OS_STAGE_POOLS[stage]) ? OS_STAGE_POOLS[stage] : [];
+  } else if (subjectKey === 'os_ch2') {
+    return (typeof OS_CH2_STAGE_POOLS !== 'undefined' && OS_CH2_STAGE_POOLS[stage]) ? OS_CH2_STAGE_POOLS[stage] : [];
   } else {
     return (typeof HIST_STAGE_POOLS !== 'undefined' && HIST_STAGE_POOLS[stage]) ? HIST_STAGE_POOLS[stage] : [];
   }
@@ -37,11 +39,21 @@ const SUBJECTS = {
   os: {
     name:    'Operating Systems',
     logoText:'OS<span>QUEST</span>',
-    chapter: 'Chapter 1 · Introduction',
+    chapter: 'Chapter 1 · Introduction to OS',
     stages: [
       { name:'FOUNDATIONS',       icon:'🧱', desc:'OS basics, system structure, bootstrap, system organization & interrupts', topics:['What is an OS','System Structure','OS Definition','Bootstrap','System Org','Interrupts'] },
       { name:'HARDWARE & STORAGE',icon:'⚙️', desc:'I/O structure, DMA, storage hierarchy, caching & system architecture',    topics:['I/O & DMA','Storage Basics','Storage Structure','Hierarchy','Caching','Architecture'] },
       { name:'OS MANAGEMENT',     icon:'🧠', desc:'Multiprogramming, dual-mode, process/memory/storage mgmt, security & environments', topics:['Multiprogramming','Dual-Mode','Process Mgmt','Memory Mgmt','Protection','Environments'] },
+    ],
+  },
+  os_ch2: {
+    name:    'Operating Systems',
+    logoText:'OS<span>QUEST</span>',
+    chapter: 'Chapter 2 · OS Structures',
+    stages: [
+      { name:'SERVICES & UI',     icon:'🖥️', desc:'OS services, CLI, GUI, touchscreen interfaces & system calls fundamentals', topics:['OS Services','CLI','GUI','Touchscreen','System Calls','Parameter Passing'] },
+      { name:'CALLS & PROGRAMS',  icon:'📞', desc:'Types of system calls, system programs, OS design goals & policy vs mechanism', topics:['Process Control','File Mgmt','Device Mgmt','System Programs','OS Design','Policy/Mechanism'] },
+      { name:'STRUCTURE & BOOT',  icon:'🏗️', desc:'OS structure models, mobile OS, debugging, OS generation & system boot', topics:['Simple Structure','Layered','Microkernel','Modules','Hybrid/Mobile','Debugging','Boot'] },
     ],
   },
   hist: {
@@ -104,14 +116,31 @@ function selectSubject(subjectKey) {
 
 // ── MODULE ROUTING ─────────────────────────────────────────────────────────
 function goModule1() {
-  show('cheat-screen');
-}
-
-function goModule2() {
+  // Module 1 = Chapter 1 quiz (os)
+  _currentSubject = 'os';
+  window._currentSubject = 'os';
+  buildStageCards('os');
+  buildCheatSheet('os');
+  const s = SUBJECTS['os'];
+  document.getElementById('start-subject-label').textContent = s.name;
+  document.getElementById('start-logo').innerHTML = s.logoText;
+  document.getElementById('start-chapter').textContent = s.chapter;
   show('start-screen');
 }
 
+function goModule2() {
+  // Module 2 = Chapter 2 quiz (os_ch2)
+  _currentSubject = 'os_ch2';
+  window._currentSubject = 'os_ch2';
+  buildStageCards('os_ch2');
+  const s = SUBJECTS['os_ch2'];
+  document.getElementById('start-subject-label').textContent = s.name;
+  document.getElementById('start-logo').innerHTML = s.logoText;
+  document.getElementById('start-chapter').textContent = s.chapter;
+  show('start-screen');
+}
 
+function buildStageCards(subjectKey) {
   const subj = SUBJECTS[subjectKey];
   const container = document.getElementById('stage-cards-container');
   container.innerHTML = '';
@@ -125,7 +154,7 @@ function goModule2() {
       <div class="stage-card-icon">${stage.icon}</div>
       <div class="stage-card-name">${stage.name}</div>
       <div class="stage-card-desc">${stage.desc}</div>
-      <div class="stage-card-topics">${stage.topics.map(t => `<span>${t}</span>`).join('')}</div>
+      <div class="stage-card-topics">${stage.topics.map(function(t){ return '<span>'+t+'</span>'; }).join('')}</div>
       <div class="stage-card-count">50 Questions · 30s each</div>
       <div class="stage-play-btn">START STAGE ${stageNum} →</div>
     `;
@@ -254,6 +283,64 @@ const CHEAT_DATA = {
         ['Galleon Trade 1565–1815','Benefitted only privileged Spaniards; damaged Filipino agriculture and industries'],
         ['Friar power','Del Pilar: friars controlled education, municipalities, communication, and people\'s minds'],
         ['Malolos Constitution 1898','Separation of Church and State — outstanding innovation of the revolution'],
+      ]},
+    ]
+  },
+  os_ch2: {
+    title: 'CHAPTER 2 · OPERATING-SYSTEM STRUCTURES',
+    cards: [
+      { icon:'⚙', topic:'OS Services', items:[
+        ['Purpose','Provide environment for program execution and services to programs and users'],
+        ['User-helpful services','UI, Program execution, I/O ops, File-system manipulation, Communications, Error detection'],
+        ['System-efficiency services','Resource allocation, Accounting, Protection and security'],
+        ['Protection','Ensures all access to system resources is controlled'],
+        ['Security','Requires user authentication; defends external I/O from invalid access'],
+      ]},
+      { icon:'💻', topic:'User Interfaces', items:[
+        ['CLI','Command-Line Interface — command interpreter / shell; fetches and executes commands'],
+        ['Shell','Can be in kernel or system program; multiple flavors possible (bash, etc.)'],
+        ['GUI','Desktop metaphor — icons, mouse, keyboard; invented at Xerox PARC'],
+        ['Mac OS X GUI','Called Aqua; UNIX kernel underneath with shells available'],
+        ['Touchscreen','Gesture-based actions, virtual keyboard, voice commands — no mouse'],
+      ]},
+      { icon:'📞', topic:'System Calls', items:[
+        ['Definition','Programming interface to OS services — typically written in C/C++'],
+        ['APIs','Programs use APIs not direct calls: Win32, POSIX, Java API (JVM)'],
+        ['System-call interface','Table indexed by system call numbers; invokes intended OS kernel call'],
+        ['Parameter passing','Registers (simple) · Block/table in memory (Linux/Solaris) · Stack (pushed/popped)'],
+        ['Run-time library','Hides most OS interface details from programmer'],
+      ]},
+      { icon:'📋', topic:'Types of System Calls', items:[
+        ['Process control','Create/terminate process, load/execute, get/set attributes, wait, locks, allocate memory'],
+        ['File management','Create/delete, open/close, read/write/reposition, get/set attributes'],
+        ['Device management','Request/release, read/write/reposition, get/set attributes, attach/detach'],
+        ['Information maintenance','Get/set time, date, system data, process/file/device attributes'],
+        ['Communications','Message passing (client→server) or shared memory; create/delete connections'],
+        ['Protection','Control access, get/set permissions, allow/deny user access'],
+      ]},
+      { icon:'🛠', topic:'System Programs & OS Design', items:[
+        ['System programs','Provide convenient environment for development & execution'],
+        ['Categories','File mgmt, Status info, File modification, Language support, Program loading, Comms, Background services'],
+        ['Daemons','Background services running from boot to shutdown in user context'],
+        ['Policy vs Mechanism','Policy = WHAT; Mechanism = HOW — separating them allows flexibility'],
+        ['User goals','Convenient, easy to learn, reliable, safe, fast'],
+        ['System goals','Easy to design/implement/maintain, flexible, reliable, error-free, efficient'],
+      ]},
+      { icon:'🏗', topic:'OS Structure Models', items:[
+        ['Simple (MS-DOS)','Most functionality in least space; interfaces not well separated'],
+        ['UNIX','Systems programs + kernel (file sys, CPU sched, memory mgmt) — not fully layered'],
+        ['Layered','Layer 0=hardware, Layer N=UI; each layer uses only lower layers'],
+        ['Microkernel (Mach)','Most OS in user space; kernel minimal; communication via message passing'],
+        ['Modules','Object-oriented; loadable kernel modules; similar to layers but more flexible (Linux, Solaris)'],
+        ['Hybrid','Most modern OSes — combines approaches for performance, security, usability'],
+      ]},
+      { icon:'🔍', topic:'Debugging & Boot', items:[
+        ['Core dump','Captures process memory on application failure'],
+        ['Crash dump','Captures kernel memory on OS failure'],
+        ['Profiling','Periodic sampling of instruction pointer to find statistical trends'],
+        ['DTrace','Live instrumentation on production systems (Solaris, FreeBSD, Mac OS X)'],
+        ['Bootstrap loader','Stored in ROM/EEPROM; locates kernel, loads it, starts it'],
+        ['GRUB','Common bootloader; allows selecting kernel from multiple disks/versions'],
       ]},
     ]
   }
